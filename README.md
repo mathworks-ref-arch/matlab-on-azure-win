@@ -3,7 +3,7 @@
 # Requirements
 Before starting, you will need the following:
 
-- A MATLAB® license. For more information, see [Configure MATLAB Licensing on the Cloud](http://www.mathworks.com/support/cloud/configure-matlab-licensing-on-the-cloud.html).
+- A MATLAB® license. For more information, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).
 - A [MathWorks Account](https://www.mathworks.com/login?uri=%2Fmwaccount%2F).
 - A Microsoft Azure account.
 
@@ -24,6 +24,7 @@ Select a release to continue:
 
 | Release |
 | ------- |
+| [R2021a](releases/R2021a/README.md) |
 | [R2020b](releases/R2020b/README.md) |
 
 
@@ -69,7 +70,7 @@ You can save a copy of your current virtual machine.  Locate the Azure VM in you
 You can customize an image by launching the reference architecture, applying any changes you want to the virtual machine such as installing additional software, drivers and files and then saving an image of that virtual machine using the Azure Portal. For more information, see [How do I save an image?](#how-do-i-save-an-image). When you launch the reference architecture, click “Edit Template”, replace the `baseImageUri` in the “variables” section with the URL from your custom image. Save and finish the deployment steps by filling out parameters, accepting the terms and clicking “Create”.
 
 ### How do I use a different license manager?
-The VM image uses MathWorks Hosted License Manager by default. For information on using other license managers, see [Configure MATLAB Licensing on the Cloud](http://www.mathworks.com/support/cloud/configure-matlab-licensing-on-the-cloud.html).
+The VM image uses MathWorks Hosted License Manager by default. For information on using other license managers, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).
 
 # Technical Support
 If you require assistance or have a request for additional features or capabilities, please contact [MathWorks Technical Support](https://www.mathworks.com/support/contact_us.html).
