@@ -6,7 +6,7 @@ Click the **Deploy to Azure** button below to deploy the cloud resources on Azur
 
 | Create Virtual Network | Use Existing Virtual Network |
 | --- | --- |
-| Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-windows-on-azure%2Fmaster%2Freleases%2FR2021a%2Fazuredeploy-R2021a.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-windows-on-azure%2Fmaster%2Freleases%2FR2021a%2Fazuredeploy-existing-vnet-R2021a.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> |
+| Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2021a%2Fazuredeploy-R2021a.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2021a%2Fazuredeploy-existing-vnet-R2021a.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> |
 
 > VM Platform: Windows Server 2019
 
