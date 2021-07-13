@@ -63,7 +63,6 @@
         "subnetId": "[if(equals(variables('newOrExistingVirtualNetwork'),'New'),variables('subnetRef'),concat(parameters('VirtualNetworkResourceID'), '/subnets/', parameters('SubnetName')))]",
         "location": "[resourceGroup().location]",
         "stopSpoolerServiceCommand": "[concat('powershell -command ','Stop-Service -Name Spooler -Force;Set-Service -Name Spooler -StartupType Disabled')]",
-    "licenseServer": "[if(equals(parameters('LicenseServer'),''),'mhlm',parameters('LicenseServer'))]",
         "licenseServer": "[if(equals(parameters('LicenseServer'),''),'mhlm',parameters('LicenseServer'))]",
         "licenseServerScript": "C:/Windows/Temp/license-manager.ps1",
         "licenseServerCommand": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('licenseServerScript'), ' -FlexServer ', variables('licenseServer'))]",
