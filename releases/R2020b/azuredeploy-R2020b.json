@@ -236,7 +236,7 @@
             "typeHandlerVersion": "1.10",
             "autoUpgradeMinorVersion": true,
             "protectedSettings": {
-              "commandToExecute": "[concat(variables('licenseServerCommand'),';',variables('warmupMatlabScript'))]"
+              "commandToExecute": "[concat(variables('stopSpoolerServiceCommand'),';',variables('licenseServerCommand'),';',variables('warmupMatlabScript'))]"
             }
           },
           "condition": "[not(equals(variables('licenseServer'),'mhlm'))]"
