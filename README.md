@@ -3,7 +3,7 @@
 # Requirements
 Before starting, you will need the following:
 
-- A MATLAB® license. For more information, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).
+- A MATLAB® license. For more information, see [Confirm Licensing for MathWorks Products Running on the Cloud](https://mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html).
 - A [MathWorks Account](https://www.mathworks.com/login?uri=%2Fmwaccount%2F).
 - A Microsoft Azure account.
 
@@ -24,6 +24,7 @@ Select a release to continue:
 
 | Release |
 | ------- |
+| [R2021b](releases/R2021b/README.md) |
 | [R2021a](releases/R2021a/README.md) |
 | [R2020b](releases/R2020b/README.md) |
 
