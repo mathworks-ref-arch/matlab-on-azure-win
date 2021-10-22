@@ -1,16 +1,16 @@
 # MATLAB on Microsoft Azure (Windows VM)
 
-## Step 1. Launch the Template
+## Step 1. Launch the Template 
 
 Click the **Deploy to Azure** button below to deploy the cloud resources on Azure. This will open the Azure Portal in your web browser.
 
 | Create Virtual Network | Use Existing Virtual Network |
 | --- | --- |
-| Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Freftemplatestorage.blob.core.windows.net%2Fmatlabwindows%2Fazuredeploy-R2021b-test.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Freftemplatestorage.blob.core.windows.net%2Fmatlabwindows%2Fazuredeploy-existing-vnet-R2021b-test.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> |
+| Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2021b%2Fazuredeploy-R2021b.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2021b%2Fazuredeploy-existing-vnet-R2021b.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a></br></br> |
 
 > VM Platform: Windows Server 2019
 
-> MATLAB Release: R2021b-test
+> MATLAB Release: R2021b
 
 ## Step 2. Configure the Cloud Resources
 Clicking the Deploy to Azure button opens the "Custom deployment" page in your browser. You can configure the parameters on this page. It is easier to complete the steps if you position these instructions and the Azure Portal window side by side.
