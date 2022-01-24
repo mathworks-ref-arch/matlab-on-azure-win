@@ -1,6 +1,6 @@
 # MATLAB on Microsoft Azure (Windows VM)
 
-## Step 1. Launch the Template 
+## Step 1. Launch the Template
 
 Click the **Deploy to Azure** button below to deploy the cloud resources on Azure. This will open the Azure Portal in your web browser.
 
