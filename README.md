@@ -13,16 +13,15 @@ You are responsible for the cost of the Azure services used when you create clou
 
 # Introduction
 
-The following guide will help you automate the process of running the MATLAB desktop on Microsoft Azure using a Windows virtual machine and connect to it using the Remote Desktop Protocol (RDP). The automation is accomplished using an Azure Resource Manager (ARM) template. The template is a JSON
-file that defines the resources needed to run MATLAB on Azure. For information about the architecture of this solution, see [Architecture and Resources](#architecture-and-resources).
+The following guide will help you automate the process of running the MATLAB desktop on Microsoft Azure using a Windows virtual machine and connect to it using the Remote Desktop Protocol (RDP) or SSH. The automation is accomplished using an Azure Resource Manager (ARM) template. The template is a JSON file that defines the resources needed to run MATLAB on Azure. For information about the architecture of this solution, see [Architecture and Resources](#architecture-and-resources).
 
 # Deployment Steps
 
-The MATLAB Reference Architecture is released with the twice-yearly general release schedule of MATLAB. 
-To view instructions for deploying the MATLAB reference architecture, select a MATLAB release:
+The MATLAB Reference Architecture is released with the twice-yearly general release schedule of MATLAB. To view instructions for deploying the MATLAB reference architecture, select a MATLAB release:
 
 | Release |
 | ------- |
+| [R2022a](releases/R2022a/README.md) |
 | [R2021b](releases/R2021b/README.md) |
 | [R2021a](releases/R2021a/README.md) |
 | [R2020b](releases/R2020b/README.md) |
