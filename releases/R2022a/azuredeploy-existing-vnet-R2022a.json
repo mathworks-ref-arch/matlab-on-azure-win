@@ -73,7 +73,7 @@
       "provider": "[variables('providerID')]"
     },
     "publisher": "mathworks-inc",
-    "offer": "matlab-ref-arch-windows-disk-preview",
+    "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2022a",
     "version": "1.0.0",
     "imageReference": {
