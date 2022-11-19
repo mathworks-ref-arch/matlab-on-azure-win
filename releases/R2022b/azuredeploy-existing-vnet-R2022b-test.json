@@ -6,7 +6,7 @@
             "type": "string",
             "defaultValue": "Standard_D3_v2",
             "metadata": {
-                "description": "The Azure instance type to use for the VM. See [Azure virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes) for a list of instance types."
+                "description": "The Azure instance type to use for this VM. See [Azure virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes) for a list of instance types."
             }
         },
         "clientIPAddresses": {
@@ -20,7 +20,7 @@
             "type": "string",
             "defaultValue": "matlab",
             "metadata": {
-                "description": "Admin username for the MATLAB virtual machine. To avoid any deployment errors, please check the list of [disallowed values](https://docs.microsoft.com/en-us/rest/api/compute/virtual-machines/create-or-update?tabs=HTTP#osprofile) for adminUsername."
+                "description": "Admin username for this virtual machine. To avoid any deployment errors, please check the list of [disallowed values](https://docs.microsoft.com/en-us/rest/api/compute/virtual-machines/create-or-update?tabs=HTTP#osprofile) for adminUsername."
             }
         },
         "adminPassword": {
@@ -84,7 +84,7 @@
             ],
             "defaultValue": "No",
             "metadata": {
-                "description": "Choose whether to create a [NICE DCV](https://www.nice-dcv.com/) connection to this VM. If you select 'Yes', NICE DCV will be configured with a 30 days trial license (unless a production license is provided). You can access the desktop on a browser using the NICE DCV connection URL in the Outputs section of the deployment page once the resource group is successfully deployed. By using NICE DCV, you agree to the terms and conditions outlined in the [NICE DCV End User License Agreement](https://www.nice-dcv.com/eula.html). If you select 'No', then, NICE DCV will not be installed in the VM and you can connect to the VM using a remote desktop connection (RDP)."
+                "description": "Choose whether to create a [NICE DCV](https://aws.amazon.com/hpc/dcv/) connection to this VM. If you select 'Yes', NICE DCV will be configured with a 30 days trial license (unless a production license is provided). You can access the desktop on a browser using the NICE DCV connection URL in the Outputs section of the deployment page once the resource group is successfully deployed. By using NICE DCV, you agree to the terms and conditions outlined in the [NICE DCV End User License Agreement](https://www.nice-dcv.com/eula.html). If you select 'No', then, NICE DCV will not be installed in the VM and you can connect to the VM using a remote desktop connection (RDP)."
             }
         },
         "niceDcvLicenseServer": {
