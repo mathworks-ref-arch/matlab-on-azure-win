@@ -408,7 +408,7 @@
                 "location": {
                   "fileSystemLocations": {
                     "windowsFileTypeLogPaths": [
-                      "[concat('C:\\Users\\matlab.', variables('vmName'), '\\AppData\\Local\\Temp\\mathworks_*.log')]"
+                      "[concat('C:\\Users\\', parameters('adminUsername'), '\\AppData\\Local\\Temp\\mathworks_*.log')]"
                     ]
                   }
                 },
@@ -457,7 +457,7 @@
                 "location": {
                   "fileSystemLocations": {
                     "windowsFileTypeLogPaths": [
-                      "[concat('C:\\Users\\matlab.', variables('vmName'), '\\AppData\\Local\\Temp\\matlab_crash_dump.*')]"
+                      "[concat('C:\\Users\\', parameters('adminUsername'), '\\AppData\\Local\\Temp\\matlab_crash_dump.*')]"
                     ]
                   }
                 },
