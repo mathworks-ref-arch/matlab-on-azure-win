@@ -163,8 +163,8 @@
     "functionAppName": "[concat('mw-autoshutdownapp', uniqueString(resourceGroup().id))]",
     "runtimeStack": "powershell",
     "storageAccountName": "[concat('mwstorage', uniquestring(resourceGroup().id))]",
-    "repoUrl": "{{REPOURL}}",
-    "branch": "{{BRANCH}}",
+    "repoUrl": "https://github.com/mathworks-ref-arch/matlab-on-azure-win.git",
+    "branch": "master",
     "appInsightsName": "[concat('mw-appinsights',uniqueString(resourceGroup().id))]",
     "roleName": "[concat('customroleforfunctionapp',uniqueString(resourceGroup().name))]",
     "roleDefinitionId": "[guid(subscription().subscriptionId,variables('roleName'))]"
