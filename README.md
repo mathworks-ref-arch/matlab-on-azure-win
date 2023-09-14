@@ -3,7 +3,7 @@
 # Requirements
 Before starting, you will need the following:
 
-- A MATLAB&reg; license. For more information, see [Confirm Licensing for MathWorks Products Running on the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html).
+- A MATLAB&reg; license. For more information, see [Licensing for MathWorks Products Running on the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html).
 - A [MathWorks&reg; Account](https://www.mathworks.com/login?uri=%2Fmwaccount%2F).
 - An Azure&reg; account.
 
@@ -21,6 +21,7 @@ To view instructions for deploying the MATLAB reference architecture, select a M
 
 | Linux | Windows |
 | ----- | ------- |
+| [R2023b](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2023b/README.md) | [R2023b](releases/R2023b/README.md) |
 | [R2023a](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2023a/README.md) | [R2023a](releases/R2023a/README.md) |
 | [R2022b](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2022b/README.md) | [R2022b](releases/R2022b/README.md) |
 | [R2022a](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2022a/README.md) | [R2022a](releases/R2022a/README.md) |
@@ -69,7 +70,7 @@ You may want to shut down the instance when you aren’t using it. Any files or 
 You can save a copy of your current virtual machine. Locate the Azure VM in your resource group in the Azure Portal, click “Capture Image” and follow the instructions.
 
 ### How do I customize the image?
-You can customize an image by launching the reference architecture, applying any changes you want to the virtual machine such as installing additional software, drivers and files and then saving an image of that virtual machine using the Azure Portal. For more information, see [How do I save an image?](#how-do-i-save-an-image). When you launch the reference architecture, click “Edit Template”, replace the `baseImageUri` in the “variables” section with the URL from your custom image. Save and finish the deployment steps by filling out parameters, accepting the terms and clicking “Create”.
+You can customize an image by launching the reference architecture, applying any changes you want to the virtual machine such as installing additional software, drivers and files and then saving an image of that virtual machine using the Azure Portal. For more information, see [How do I save an image?](#how-do-i-save-an-image) When you launch the reference architecture, click “Edit Template”, replace the `baseImageUri` in the “variables” section with the URL from your custom image. Save and finish the deployment steps by filling out parameters, accepting the terms and clicking “Create”.
 
 ### How do I use a different license manager?
 The VM image uses MathWorks Hosted License Manager by default. For information on using other license managers, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).
@@ -79,3 +80,9 @@ You will need to edit the template and replace the appropriate sections with you
 
 # Technical Support
 If you require assistance or have a request for additional features or capabilities, please contact [MathWorks Technical Support](https://www.mathworks.com/support/contact_us.html).
+
+----
+
+Copyright 2018-2023 The MathWorks, Inc.
+
+----
