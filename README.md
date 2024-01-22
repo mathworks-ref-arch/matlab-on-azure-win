@@ -58,6 +58,13 @@ To make deployment easy, a preconfigured virtual machine is provided. The VM ima
 
 ## FAQ
 
+### When are the MathWorks machine images updated?
+The links in [Deployment Steps](#deployment-steps) launch instances based on the latest MathWorks
+machine images for at least the four most recent MATLAB releases. MATLAB releases occur twice each year.
+
+For each MATLAB release, MathWorks periodically replaces the corresponding image with a newer image
+that includes the latest MATLAB updates and important security updates of the base OS image.
+
 ### How do I save my changes in the VM?
 All your files and changes are stored locally on the virtual machine. They will persist until you either terminate the virtual machine instance or delete the resource group. Stopping the instance does not destroy the data on the instance. If you want your changes to persist before you terminate an instance, you’ll need to:
 * copy your files to another location, or
@@ -66,11 +73,9 @@ All your files and changes are stored locally on the virtual machine. They will 
 ### What happens to my data if I shut down the instance?
 You may want to shut down the instance when you aren’t using it. Any files or changes made to the virtual machine will persist when shutting down and will be there when you restart.
 
-### How do I save an image?
-You can save a copy of your current virtual machine. Locate the Azure VM in your resource group in the Azure Portal, click “Capture Image” and follow the instructions.
-
 ### How do I customize the image?
-You can customize an image by launching the reference architecture, applying any changes you want to the virtual machine such as installing additional software, drivers and files and then saving an image of that virtual machine using the Azure Portal. For more information, see [How do I save an image?](#how-do-i-save-an-image) When you launch the reference architecture, click “Edit Template”, replace the `baseImageUri` in the “variables” section with the URL from your custom image. Save and finish the deployment steps by filling out parameters, accepting the terms and clicking “Create”.
+You can customize an image by launching the reference architecture, applying any changes you want to the virtual machine and then saving an image of that virtual machine using the Azure Portal.
+For more information, see [Create an image of a VM in the portal](https://learn.microsoft.com/en-us/azure/virtual-machines/capture-image-portal).
 
 ### How do I use a different license manager?
 The VM image uses MathWorks Hosted License Manager by default. For information on using other license managers, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).
