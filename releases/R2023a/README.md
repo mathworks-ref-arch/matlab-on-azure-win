@@ -3,7 +3,7 @@
 
 ## Prerequisites
 
-To deploy this reference architecture, you must have the following permissions that allow you to create and assign Azure roles in your subscription:
+To deploy this reference architecture, you must have the following permissions that allow you to create and assign Azure&reg; roles in your subscription:
 
 1. `Microsoft.Authorization/roleDefinitions/write`
 2. `Microsoft.Authorization/roleAssignments/write`
@@ -26,9 +26,9 @@ Click the **Deploy to Azure** button below to deploy the cloud resources on Azur
 | --- | --- |
 | Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2023a%2Fazuredeploy-R2023a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2023a%2Fazuredeploy-existing-vnet-R2023a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> |
 
-> VM Platform: Windows Server 2019
+> VM Platform: Windows Server 2022
 
-> MATLAB Release: R2023a
+> MATLAB&reg; Release: R2023a
 
 ## Step 2. Configure the Cloud Resources
 
@@ -51,6 +51,7 @@ Clicking the Deploy to Azure button opens the "Custom deployment" page in your b
 | **NICE DCV License Server** | If you have opted to enable NICE DCV and have a production license, use this optional parameter to specify the NICE DCV license server's port and hostname (or IP address) in the form of port@hostname. This field must be left blank if you have opted not to enable NICE DCV or want to use NICE DCV with a trial license. |
 | **MATLAB License Server** | Optional License Manager for MATLAB, specified as a string in the form port@hostname. If not specified, online licensing is used. If specified, the license manager must be accessible from the specified virtual network and subnets. For more information, see https://github.com/mathworks-ref-arch/license-manager-for-matlab-on-azure. |
 | **Logging** | Choose whether you want to enable [Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-custom-logs) logging for the MATLAB instance. To see the logs, go to the log workspace in your resource group and click on Logs. You can also view the logs in your virtual machine Logs section. |
+| **Optional User Command** | Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable("CLOUD","AZURE", "Machine");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest "https://www.example.com/script.ps1" -OutFile script.ps1; .\script.ps1&gt;. Find the logs at '$Env:ProgramData\MathWorks\startup.log'. |
 
 
 2. Click the **Review + create** button.
@@ -81,7 +82,7 @@ Clicking the Deploy to Azure button opens the "Custom deployment" page in your b
 
 ## Step 4. Start MATLAB
 
-Double-click the MATLAB icon on the virtual machine desktop to start MATLAB. The first time you start MATLAB, you need to enter your MathWorks Account credentials to license MATLAB. For other ways to license MATLAB, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html). 
+Double-click the MATLAB icon on the virtual machine desktop to start MATLAB. The first time you start MATLAB, you need to enter your MathWorks&reg; Account credentials to license MATLAB. For other ways to license MATLAB, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html). 
 
 >**Note**: It may take up to a minute for MATLAB to start the first time.
 
@@ -102,6 +103,6 @@ If your resource group fails to deploy, check the Deployments section of the Res
 
 ----
 
-Copyright (c) 2020-2023 The MathWorks, Inc. All rights reserved.
+Copyright 2020-2023 The MathWorks, Inc.
 
 ----

@@ -99,6 +99,13 @@
       "metadata": {
         "description": "Choose whether you want to enable [Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-custom-logs) logging for the MATLAB instance. To see the logs, go to the log workspace in your resource group and click on Logs. You can also view the logs in your virtual machine Logs section."
       }
+    },
+    "optionalUserCommand": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable(\"CLOUD\",\"AZURE\", \"Machine\");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest \"https://www.example.com/script.ps1\" -OutFile script.ps1; .\\script.ps1&gt;. Find the logs at '$Env:ProgramData\\MathWorks\\startup.log'."
+      }
     }
   },
   "variables": {
@@ -129,6 +136,7 @@
       "[concat('$Env:EnableNiceDCV=\"', parameters('enableNiceDcv'), '\"')]",
       "[concat('$Env:Username=\"', parameters('adminUsername'), '\"')]",
       "[concat('$Env:NiceDCVLicense=\"', parameters('niceDcvLicenseServer'), '\"')]",
+      "[concat('$Env:OptionalUserCommand=', '''', parameters('optionalUserCommand'), '''')]",
       "",
       "# Run startup scripts",
       "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append",
@@ -148,7 +156,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2023a",
-    "version": "latest",
+    "version": "1.0.4",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
