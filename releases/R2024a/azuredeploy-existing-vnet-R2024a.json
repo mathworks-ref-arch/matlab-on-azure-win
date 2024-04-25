@@ -168,7 +168,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2024a",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
