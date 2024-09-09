@@ -1,0 +1,907 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D3_v2",
+      "metadata": {
+        "description": "The Azure instance type to use for this VM. See [Azure virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes) for a list of instance types."
+      }
+    },
+    "clientIPAddresses": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "IP address range that can be used to access the VM. This must be a valid IP CIDR range of the form x.x.x.x/x. Use the value &lt;your_public_ip_address&gt;/32 to restrict access to only your computer."
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "matlab",
+      "metadata": {
+        "description": "Admin username for this virtual machine. To avoid any deployment errors, please check the list of [disallowed values](https://docs.microsoft.com/en-us/rest/api/compute/virtual-machines/create-or-update?tabs=HTTP#osprofile) for adminUsername."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Choose the password for the admin username. This password is required when logging in remotely to the instance. For the deployment to succeed, your password must meet [Azure's password requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq#what-are-the-password-requirements-when-creating-a-vm-)."
+      }
+    },
+    "autoShutdown": {
+      "defaultValue": "Never",
+      "type": "string",
+      "allowedValues": [
+        "Never",
+        "After 1 hour",
+        "After 2 hours",
+        "After 3 hours",
+        "After 4 hours",
+        "After 5 hours",
+        "After 6 hours",
+        "After 7 hours",
+        "After 8 hours",
+        "After 9 hours",
+        "After 10 hours",
+        "After 11 hours",
+        "After 12 hours",
+        "After 13 hours",
+        "After 14 hours",
+        "After 15 hours",
+        "After 16 hours",
+        "After 17 hours",
+        "After 18 hours",
+        "After 19 hours",
+        "After 20 hours",
+        "After 21 hours",
+        "After 22 hours",
+        "After 23 hours",
+        "After 24 hours"
+      ],
+      "metadata": {
+        "description": "Select the duration after which the VM should be automatically shut down post launch."
+      }
+    },
+    "enableNiceDcv": {
+      "type": "string",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ],
+      "defaultValue": "No",
+      "metadata": {
+        "description": "Choose whether to create a [NICE DCV](https://aws.amazon.com/hpc/dcv/) connection to this VM. If you select 'Yes', NICE DCV will be configured with a 30 days trial license (unless a production license is provided). You can access the desktop on a browser using the NICE DCV connection URL in the Outputs section of the deployment page once the resource group is successfully deployed. By using NICE DCV, you agree to the terms and conditions outlined in the [NICE DCV End User License Agreement](https://www.nice-dcv.com/eula.html). If you select 'No', then, NICE DCV will not be installed in the VM and you can connect to the VM using a remote desktop connection (RDP)."
+      }
+    },
+    "niceDcvLicenseServer": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "If you have opted to enable NICE DCV and have a production license, use this optional parameter to specify the NICE DCV license server's port and hostname (or IP address) in the form of port@hostname. This field must be left blank if you have opted not to enable NICE DCV or want to use NICE DCV with a trial license."
+      }
+    },
+    "matlabLicenseServer": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "Optional License Manager for MATLAB, specified as a string in the form port@hostname. If not specified, online licensing is used. If specified, the license manager must be accessible from the specified virtual network and subnets. For more information, see https://github.com/mathworks-ref-arch/license-manager-for-matlab-on-azure."
+      }
+    },
+    "logging": {
+      "defaultValue": "No",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ],
+      "type": "string",
+      "metadata": {
+        "description": "Choose whether you want to enable [Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-custom-logs) logging for the MATLAB instance. To see the logs, go to the log workspace in your resource group and click on Logs. You can also view the logs in your virtual machine Logs section."
+      }
+    },
+    "optionalUserCommand": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable(\"CLOUD\",\"AZURE\", \"Machine\");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest \"https://www.example.com/script.ps1\" -OutFile script.ps1; .\\script.ps1&gt;. Find the logs at '$Env:ProgramData\\MathWorks\\startup.log'."
+      }
+    }
+  },
+  "variables": {
+    "prefix": "matlab",
+    "addressPrefix": "10.0.0.0/16",
+    "subnetPrefix": "10.0.0.0/24",
+    "newOrExistingVirtualNetwork": "New",
+    "virtualNetworkCreateName": "[concat(variables('prefix'), '-vnet')]",
+    "subnetCreateName": "[concat(variables('prefix'), '-subnet')]",
+    "virtualNetworkName": "[if(equals(variables('newOrExistingVirtualNetwork'),'Existing'),last(split(parameters('virtualNetworkResourceID'),'/')),variables('virtualNetworkCreateName'))]",
+    "subnetName": "[if(equals(variables('newOrExistingVirtualNetwork'),'Existing'),parameters('subnetName'),variables('subnetCreateName'))]",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+    "subnetId": "[if(equals(variables('newOrExistingVirtualNetwork'),'New'),variables('subnetRef'),concat(parameters('virtualNetworkResourceID'), '/subnets/', parameters('subnetName')))]",
+    "location": "[resourceGroup().location]",
+    "logging": "[parameters('logging')]",
+    "workspaceName": "[concat(variables('prefix'), '-logworkspace')]",
+    "userDataScript": [
+      "# Copyright 2023 The MathWorks, Inc.",
+      "",
+      "$StartupFolder = \"$Env:ProgramFiles\\MathWorks\\startup\"",
+      "# Load startup variables",
+      "If (Test-Path $StartupFolder\\env.ps1) {",
+      "    . $StartupFolder\\env.ps1",
+      "}",
+      "",
+      "# Define startup parameters",
+      "[concat('$Env:MLMLicenseFile=\"', parameters('matlabLicenseServer'), '\"')]",
+      "[concat('$Env:EnableNiceDCV=\"', parameters('enableNiceDcv'), '\"')]",
+      "[concat('$Env:Username=\"', parameters('adminUsername'), '\"')]",
+      "[concat('$Env:NiceDCVLicense=\"', parameters('niceDcvLicenseServer'), '\"')]",
+      "[concat('$Env:OptionalUserCommand=', '''', parameters('optionalUserCommand'), '''')]",
+      "",
+      "# Run startup scripts",
+      "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append",
+      "Get-ChildItem $StartupFolder | Where-Object { $_ -match '^[0-9]+_.+$' } | Sort-Object | ForEach-Object { Write-Output \"startup: executing $_\"; & $_.FullName }",
+      "Stop-Transcript"
+    ],
+    "networkSecurityGroupName": "[concat(variables('prefix'), '-rdp-nsg')]",
+    "publicIp": "[concat(variables('prefix'), '-publicIP')]",
+    "domainNameLabel": "[concat(variables('prefix'), '-azure-', uniqueString(resourceGroup().id))]",
+    "nicName": "[concat(variables('prefix'), '-nic')]",
+    "vmName": "[concat(variables('prefix'),  '-vm')]",
+    "hostName": "matlabvm",
+    "providerID": "731B8048-AF19-4112-9B19-F5B9E7A961E8",
+    "tagsForAll": {
+      "provider": "[variables('providerID')]"
+    },
+    "publisher": "mathworks-inc",
+    "offer": "matlab-ref-arch-windows-disk",
+    "sku": "matlab-ref-arch-win-sku-r2024b",
+    "version": "1.0.0",
+    "imageReference": {
+      "publisher": "[variables('publisher')]",
+      "offer": "[variables('offer')]",
+      "sku": "[variables('sku')]",
+      "version": "[variables('version')]"
+    },
+    "plan": {
+      "name": "[variables('sku')]",
+      "publisher": "[variables('publisher')]",
+      "product": "[variables('offer')]"
+    },
+    "functionAppName": "[concat('mw-autoshutdownapp', uniqueString(resourceGroup().id))]",
+    "runtimeStack": "powershell",
+    "storageAccountName": "[concat('mwstorage', uniquestring(resourceGroup().id))]",
+    "repoUrl": "https://github.com/mathworks-ref-arch/matlab-on-azure-win.git",
+    "branch": "master",
+    "appInsightsName": "[concat('mw-appinsights',uniqueString(resourceGroup().id))]",
+    "roleName": "[concat('customroleforfunctionapp',uniqueString(resourceGroup().name))]",
+    "roleDefinitionId": "[guid(subscription().subscriptionId,variables('roleName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2022-01-01",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tagsForAll')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetCreateName')]",
+            "properties": {
+              "addressPrefix": "[variables('subnetPrefix')]"
+            }
+          }
+        ]
+      },
+      "condition": "[equals(variables('newOrExistingVirtualNetwork'),'New')]"
+    },
+    {
+      "name": "[variables('networkSecurityGroupName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2022-01-01",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tagsForAll')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "default-allow-rdp",
+            "properties": {
+              "priority": 1001,
+              "sourceAddressPrefix": "[parameters('ClientIPAddresses')]",
+              "protocol": "Tcp",
+              "destinationPortRange": "3389",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          },
+          {
+            "name": "allow-ssh",
+            "properties": {
+              "description": "allow-ssh",
+              "protocol": "TCP",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "[parameters('ClientIPAddresses')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 1040,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "allow-nice-dcv",
+            "properties": {
+              "priority": 1002,
+              "sourceAddressPrefix": "[parameters('ClientIPAddresses')]",
+              "protocol": "Tcp",
+              "destinationPortRange": "8443",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('publicIp')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2022-01-01",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tagsForAll')]",
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('domainNameLabel')]"
+        },
+        "idleTimeoutInMinutes": 20
+      }
+    },
+    {
+      "name": "[variables('nicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2022-01-01",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tagsForAll')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIpAddresses/', variables('publicIp'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "nic1IpConfig",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetId')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIpAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIp'))]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2021-06-01",
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('workspaceName')]",
+      "properties": {
+        "sku": {
+          "name": "['pergb2018']"
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "WindowsPerfMemoryAvailableBytes",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "WindowsPerformanceCounter",
+          "properties": {
+            "objectName": "Memory",
+            "instanceName": "*",
+            "intervalSeconds": 10,
+            "counterName": "Available MBytes "
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "WindowsPerfMemoryPercentageBytes",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "WindowsPerformanceCounter",
+          "properties": {
+            "objectName": "Memory",
+            "instanceName": "*",
+            "intervalSeconds": 10,
+            "counterName": "% Committed Bytes in Use"
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "WindowsPerfProcessorPercentage",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "WindowsPerformanceCounter",
+          "properties": {
+            "objectName": "Processor",
+            "instanceName": "_Total",
+            "intervalSeconds": 10,
+            "counterName": "% Processor Time"
+          }
+        },
+        {
+          "type": "dataSources",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "apiVersion": "2020-08-01",
+          "name": "WindowsEventsSystem",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "WindowsEvent",
+          "properties": {
+            "eventLogName": "System",
+            "eventTypes": [
+              {
+                "eventType": "Error"
+              },
+              {
+                "eventType": "Warning"
+              }
+            ]
+          }
+        },
+        {
+          "type": "dataSources",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "apiVersion": "2020-08-01",
+          "name": "WindowsEventsApplication",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "WindowsEvent",
+          "properties": {
+            "eventLogName": "Application",
+            "eventTypes": [
+              {
+                "eventType": "Error"
+              },
+              {
+                "eventType": "Warning"
+              },
+              {
+                "eventType": "Information"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "matlabinstallationlogs",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "CustomLog",
+          "properties": {
+            "customLogName": "matlabinstallationlogs",
+            "description": "matlabinstallationlogs",
+            "inputs": [
+              {
+                "location": {
+                  "fileSystemLocations": {
+                    "windowsFileTypeLogPaths": [
+                      "[concat('C:\\Users\\', parameters('adminUsername'), '\\AppData\\Local\\Temp\\mathworks_*.log')]"
+                    ]
+                  }
+                },
+                "recordDelimiter": {
+                  "regexDelimiter": {
+                    "matchIndex": 0,
+                    "numberdGroup": null,
+                    "pattern": "\\n"
+                  }
+                }
+              }
+            ],
+            "extractions": [
+              {
+                "extractionName": "TimeGenerated",
+                "extractionProperties": {
+                  "dateTimeExtraction": {
+                    "regex": [
+                      {
+                        "matchIndex": 0,
+                        "numberdGroup": null,
+                        "pattern": "((\\d{2})|(\\d{4}))-([0-1]\\d)-(([0-3]\\d)|(\\d))\\s((\\d)|([0-1]\\d)|(2[0-4])):[0-5][0-9]:[0-5][0-9]"
+                      }
+                    ]
+                  }
+                },
+                "extractionType": "DateTime"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "matlabcrashlogs",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "CustomLog",
+          "properties": {
+            "customLogName": "matlabcrashlogs",
+            "description": "matlabcrashlogs",
+            "inputs": [
+              {
+                "location": {
+                  "fileSystemLocations": {
+                    "windowsFileTypeLogPaths": [
+                      "[concat('C:\\Users\\', parameters('adminUsername'), '\\AppData\\Local\\Temp\\matlab_crash_dump.*')]"
+                    ]
+                  }
+                },
+                "recordDelimiter": {
+                  "regexDelimiter": {
+                    "matchIndex": 0,
+                    "numberdGroup": null,
+                    "pattern": "\\n"
+                  }
+                }
+              }
+            ],
+            "extractions": [
+              {
+                "extractionName": "TimeGenerated",
+                "extractionProperties": {
+                  "dateTimeExtraction": {
+                    "regex": [
+                      {
+                        "matchIndex": 0,
+                        "numberdGroup": null,
+                        "pattern": "((\\d{2})|(\\d{4}))-([0-1]\\d)-(([0-3]\\d)|(\\d))\\s((\\d)|([0-1]\\d)|(2[0-4])):[0-5][0-9]:[0-5][0-9]"
+                      }
+                    ]
+                  }
+                },
+                "extractionType": "DateTime"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "dcvserverlogs",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "CustomLog",
+          "properties": {
+            "customLogName": "dcvserverlogs",
+            "description": "dcvserverlogs",
+            "inputs": [
+              {
+                "location": {
+                  "fileSystemLocations": {
+                    "windowsFileTypeLogPaths": [
+                      "C:\\ProgramData\\NICE\\dcv\\log\\server.log*"
+                    ]
+                  }
+                },
+                "recordDelimiter": {
+                  "regexDelimiter": {
+                    "matchIndex": 0,
+                    "numberdGroup": null,
+                    "pattern": "\\n"
+                  }
+                }
+              }
+            ],
+            "extractions": [
+              {
+                "extractionName": "TimeGenerated",
+                "extractionProperties": {
+                  "dateTimeExtraction": {
+                    "regex": [
+                      {
+                        "matchIndex": 0,
+                        "numberdGroup": null,
+                        "pattern": "((\\d{2})|(\\d{4}))-([0-1]\\d)-(([0-3]\\d)|(\\d))\\s((\\d)|([0-1]\\d)|(2[0-4])):[0-5][0-9]:[0-5][0-9]"
+                      }
+                    ]
+                  }
+                },
+                "extractionType": "DateTime"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "dcvsessionlauncher",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "CustomLog",
+          "properties": {
+            "customLogName": "dcvsessionlauncher",
+            "description": "dcvsessionlauncher",
+            "inputs": [
+              {
+                "location": {
+                  "fileSystemLocations": {
+                    "windowsFileTypeLogPaths": [
+                      "C:\\ProgramData\\NICE\\dcv\\log\\agentsession.log*"
+                    ]
+                  }
+                },
+                "recordDelimiter": {
+                  "regexDelimiter": {
+                    "matchIndex": 0,
+                    "numberdGroup": null,
+                    "pattern": "\\n"
+                  }
+                }
+              }
+            ],
+            "extractions": [
+              {
+                "extractionName": "TimeGenerated",
+                "extractionProperties": {
+                  "dateTimeExtraction": {
+                    "regex": [
+                      {
+                        "matchIndex": 0,
+                        "numberdGroup": null,
+                        "pattern": "((\\d{2})|(\\d{4}))-([0-1]\\d)-(([0-3]\\d)|(\\d))\\s((\\d)|([0-1]\\d)|(2[0-4])):[0-5][0-9]:[0-5][0-9]"
+                      }
+                    ]
+                  }
+                },
+                "extractionType": "DateTime"
+              }
+            ]
+          }
+        },
+        {
+          "apiVersion": "2020-08-01",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "dataSources",
+          "name": "dcvagent",
+          "dependsOn": [
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+          ],
+          "kind": "CustomLog",
+          "properties": {
+            "customLogName": "dcvagent",
+            "description": "dcvagent",
+            "inputs": [
+              {
+                "location": {
+                  "fileSystemLocations": {
+                    "windowsFileTypeLogPaths": [
+                      "C:\\ProgramData\\NICE\\dcv\\log\\agent.log*"
+                    ]
+                  }
+                },
+                "recordDelimiter": {
+                  "regexDelimiter": {
+                    "matchIndex": 0,
+                    "numberdGroup": null,
+                    "pattern": "\\n"
+                  }
+                }
+              }
+            ],
+            "extractions": [
+              {
+                "extractionName": "TimeGenerated",
+                "extractionProperties": {
+                  "dateTimeExtraction": {
+                    "regex": [
+                      {
+                        "matchIndex": 0,
+                        "numberdGroup": null,
+                        "pattern": "((\\d{2})|(\\d{4}))-([0-1]\\d)-(([0-3]\\d)|(\\d))\\s((\\d)|([0-1]\\d)|(2[0-4])):[0-5][0-9]:[0-5][0-9]"
+                      }
+                    ]
+                  }
+                },
+                "extractionType": "DateTime"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2023-03-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "tags": "[variables('tagsForAll')]",
+      "name": "[variables('vmName')]",
+      "plan": {
+        "name": "[variables('sku')]",
+        "publisher": "[variables('publisher')]",
+        "product": "[variables('offer')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "VmSize": "[parameters('VmSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('publisher')]",
+            "offer": "[variables('offer')]",
+            "sku": "[variables('sku')]",
+            "version": "[variables('version')]"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Standard_LRS"
+            }
+          },
+          "dataDisks": []
+        },
+        "osProfile": {
+          "computerName": "[variables('vmName')]",
+          "AdminUsername": "[parameters('adminUsername')]",
+          "AdminPassword": "[parameters('adminPassword')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": false
+          }
+        },
+        "userData": "[base64(join(variables('userDataScript'), '\r\n'))]"
+      },
+      "resources": [
+        {
+          "type": "extensions",
+          "apiVersion": "2023-03-01",
+          "name": "startup",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+          ],
+          "tags": {
+            "displayName": "startup"
+          },
+          "properties": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.10",
+            "autoUpgradeMinorVersion": true,
+            "protectedSettings": {
+              "commandToExecute": "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{'Metadata'='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
+            }
+          }
+        },
+        {
+          "name": "Microsoft.EnterpriseCloud.Monitoring",
+          "condition": "[equals(variables('logging'),'Yes')]",
+          "type": "extensions",
+          "apiVersion": "2022-03-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions/', variables('vmName'), 'startup')]",
+            "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
+            "[resourceId('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+          ],
+          "properties": {
+            "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+            "type": "MicrosoftMonitoringAgent",
+            "typeHandlerVersion": "1.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+              "workspaceId": "[if(equals(variables('logging'),'Yes'), reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName')), '2020-08-01').customerId, '0000')]"
+            },
+            "protectedSettings": {
+              "workspaceKey": "[if(equals(variables('logging'),'Yes'), listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName')), '2020-08-01').primarySharedKey, '0000')]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('functionAppName')]",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-03-01",
+      "location": "[variables('location')]",
+      "kind": "functionapp",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.Insights/components',variables('appinsightsName'))]"
+      ],
+      "properties": {
+        "siteConfig": {
+          "appSettings": [
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "[variables('runtimeStack')]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('microsoft.insights/components/', variables('appinsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2021-06-01').keys[0].value)]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')),'2021-06-01').keys[0].value)]"
+            },
+            {
+              "name": "PROJECT",
+              "value": "function-apps/"
+            },
+            {
+              "name": "RESOURCE_GROUP_NAME",
+              "value": "[resourceGroup().name]"
+            },
+            {
+              "name": "HOURS_BEFORE_SHUTDOWN",
+              "value": "[parameters('autoShutdown')]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2021-02-01",
+          "name": "web",
+          "type": "sourcecontrols",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites/', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "RepoUrl": "[variables('repoURL')]",
+            "branch": "[variables('branch')]",
+            "IsManualIntegration": true,
+            "isGitHubAction": false
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2022-04-01",
+      "name": "[variables('roleDefinitionId')]",
+      "properties": {
+        "roleName": "[variables('roleName')]",
+        "description": "Lets the function app read information about the VM, update tags and deallocate it",
+        "assignableScopes": [
+          "[resourceGroup().id]"
+        ],
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.DevTestLab/schedules/read",
+              "Microsoft.Resources/subscriptions/resourceGroups/read",
+              "Microsoft.Compute/virtualMachines/read",
+              "Microsoft.Compute/virtualMachines/write",
+              "Microsoft.Compute/virtualMachines/deallocate/action",
+              "Microsoft.Compute/virtualMachines/instanceView/read"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(resourceGroup().id)]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/', variables('functionAppName'))]",
+        "[resourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]",
+        "principalType": "ServicePrincipal",
+        "principalId": "[reference(resourceId('Microsoft.Web/sites/', variables('functionAppName')), '2021-03-01', 'Full').identity.principalId]",
+        "scope": "[resourceGroup().id]"
+      }
+    },
+    {
+      "apiVersion": "2021-06-01",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "kind": "StorageV2",
+      "location": "[variables('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      }
+    },
+    {
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appinsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('workspaceName')]"
+      ],
+      "properties": {
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('workspaceName'))]"
+      }
+    },
+    {
+      "name": "[concat('pid-', toLower(variables('providerID')))]",
+      "apiVersion": "2021-04-01",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "NICE DCV Connection": {
+      "type": "String",
+      "condition": "[equals(parameters('enableNiceDcv'),'Yes')]",
+      "value": "[concat('https://',reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIP'))).dnsSettings.fqdn,':8443/#console')]"
+    },
+    "RDP Connection": {
+      "type": "String",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIP'))).dnsSettings.fqdn]"
+    }
+  }
+}
