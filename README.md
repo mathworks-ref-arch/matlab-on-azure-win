@@ -16,7 +16,12 @@ You are responsible for the cost of the Azure services used when you create clou
 
 
 # Deployment Steps
+By default, the MATLAB reference architectures below launch prebuilt machine images, described in [Architecture and Resources](#architecture-and-resources).
+Using a prebuilt machine image is the easiest way to deploy a MATLAB reference architecture.
+Alternatively, to build your own machine image with MATLAB using MathWorks build scripts,
+see [Build and Deploy Your Own Machine Image](#build-and-deploy-your-own-machine-image).
 
+## Deploy Prebuilt Machine Image
 To view instructions for deploying the MATLAB reference architecture, select a MATLAB release:
 
 | Linux | Windows |
@@ -35,7 +40,19 @@ To view instructions for deploying the MATLAB reference architecture, select a M
 | [R2019a\_and\_older](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2019a_and_older/README.md) |  |
 
 
-# Learn about Architecture
+The above instructions allow you to launch instances based on the latest prebuilt MathWorks marketplace images.
+MathWorks periodically replaces older machine images with new images.
+For more details, see
+[When are the MathWorks machine images updated?](#when-are-the-mathworks-machine-images-updated)
+
+## Build and Deploy Your Own Machine Image
+For details of the scripts which form the basis of the MathWorks Windows reference architecture build process,
+see [Build Your Own Machine Image](./packer/v1).
+You can use these scripts to build your own custom Windows machine image for running MATLAB on Azure,
+which you can deploy with the MathWorks infrastructure as code (IaC) templates.
+To launch the built image, see [Deploy Your Own Machine Image](releases/R2024b/README.md#deploy-your-own-machine-image).
+
+# Architecture and Resources
 Deploying this reference architecture will create several resources in your resource group.
 
 ![MATLAB on Azure Reference Architecture](img/azure-matlab-diagram.png)
@@ -76,8 +93,12 @@ All your files and changes are stored locally on the virtual machine. They persi
 To minimize costs, you might want to shut down the instance when you are not using it. Any files or changes you make to the virtual machine persist when you shut down the instance and will be there when you restart it.
 
 ### How do I customize the image?
-You can customize an image by launching the reference architecture, applying changes to the virtual machine, and then saving an image of that virtual machine using the Azure Portal.
+To build your own custom machine image using MathWorks build scripts,
+see [Build and Deploy Your Own Machine Image](#build-and-deploy-your-own-machine-image).
+
+Alternatively, you can customize an image by launching the reference architecture, applying any changes you want to the virtual machine and then saving an image of that virtual machine using the Azure Portal.
 For more information, see [Create an image of a VM in the portal](https://learn.microsoft.com/en-us/azure/virtual-machines/capture-image-portal) in the Azure documentation.
+Such changes may include installing additional software, drivers and files.
 
 ### How do I use a different license manager?
 The VM image uses MathWorks Hosted License Manager by default. For information on using other license managers, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/licensingoncloud/matlab-on-the-cloud.html).

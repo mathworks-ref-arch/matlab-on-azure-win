@@ -168,7 +168,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2024a",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
@@ -732,7 +732,7 @@
             "typeHandlerVersion": "1.10",
             "autoUpgradeMinorVersion": true,
             "protectedSettings": {
-              "commandToExecute": "powershell -Command \"[System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($(Invoke-RestMethod -Headers @{'Metadata'='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text'))) | powershell\""
+              "commandToExecute": "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{'Metadata'='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
             }
           }
         },

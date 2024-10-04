@@ -26,9 +26,11 @@ Click the **Deploy to Azure** button below to deploy the cloud resources on Azur
 | --- | --- |
 | Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024a%2Fazuredeploy-R2024a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024a%2Fazuredeploy-existing-vnet-R2024a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> |
 
-> VM Platform: Windows Server 2022
+> VM Platform: Windows Server 2022 (R2023a and later), Windows Server 2019 (R2022b and earlier)
 
 > MATLAB&reg; Release: R2024a
+
+To deploy a custom machine image, see [Deploy Your Own Machine Image](#deploy-your-own-machine-image).
 
 ## Step 2. Configure the Cloud Resources
 
@@ -85,6 +87,22 @@ Clicking the **Deploy to Azure** button opens the "Custom deployment" page in yo
 Double-click the MATLAB icon on the virtual machine desktop to start MATLAB. The first time you start MATLAB, you need to enter your MathWorks&reg; Account credentials to license MATLAB. For other ways to license MATLAB, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html). 
 
 >**Note**: It may take up to a minute for MATLAB to start the first time.
+
+# Deploy Your Own Machine Image
+For details of the scripts which form the basis of the MathWorks Windows Virtual Hard Disk (VHD) build process,
+see [Build Your Own Machine Image](https://github.com/mathworks-ref-arch/matlab-on-azure-win/blob/main/packer/v1/README.md).
+You can use these scripts to build your own custom Windows machine image for running MATLAB on Azure.
+You can then deploy this custom image with the following MathWorks infrastructure as code (IaC) templates.
+| Create Virtual Network for Custom Image | Use Existing Virtual Network for Custom Image|
+| --- | --- |
+| Use this option to deploy the custom image and other resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024a%2Fazuredeploy-R2024a-test.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> | Use this option to deploy the custom image and other resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024a%2Fazuredeploy-existing-vnet-R2024a-test.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> |
+
+To launch a custom image, the following fields are required by these templates.
+| Argument Name | Description |
+|---|---|
+|`Custom VHD`                 | URL of custom VHD. This is the `artifact_id` listed in the `manifest.json`. |
+|`Custom VHD Storage Account` | Storage account that contains the custom VHD. This is the storage account that was specified in the Packer build using the `STORAGE_ACCOUNT` parameter. |
+|`Custom VHD Resource Group`  | Resource group that contains the custom VHD. This is the resource group that was specified in the Packer build using the `RESOURCE_GROUP_NAME` parameter. |
 
 # Additional Information
 
