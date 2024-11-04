@@ -28,4 +28,4 @@ PYTHON_INSTALLER_URL        = "https://www.python.org/ftp/python/3.10.5/python-3
 EDGE_INSTALLER_URL          = "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/624ce5ea-33a7-47f1-af28-5c677f0c18bf/MicrosoftEdgeEnterpriseX64.msi"
 IMAGE_PUBLISHER             = "MicrosoftWindowsServer"
 IMAGE_OFFER                 = "WindowsServer"
-IMAGE_SKU                   = "2019-Datacenter"
+IMAGE_SKU                   = "2022-Datacenter"

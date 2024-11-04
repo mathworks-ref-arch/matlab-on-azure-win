@@ -86,7 +86,7 @@
       "defaultValue": "",
       "type": "String",
       "metadata": {
-        "description": "Optional License Manager for MATLAB string in the form port@hostname. If not specified, online licensing is used. If specified, the license manager must be accessible from the specified virtual network and subnets."
+        "description": "Optional License Manager for MATLAB, specified as a string in the form port@hostname. If not specified, online licensing is used. If specified, the license manager must be accessible from the specified virtual network and subnets. For more information, see https://github.com/mathworks-ref-arch/license-manager-for-matlab-on-azure."
       }
     },
     "logging": {
@@ -98,6 +98,13 @@
       "type": "string",
       "metadata": {
         "description": "Choose whether you want to enable [Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-custom-logs) logging for the MATLAB instance. To see the logs, go to the log workspace in your resource group and click on Logs. You can also view the logs in your virtual machine Logs section."
+      }
+    },
+    "optionalUserCommand": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable(\"CLOUD\",\"AZURE\", \"Machine\");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest \"https://www.example.com/script.ps1\" -OutFile script.ps1; .\\script.ps1&gt;. Find the logs at '$Env:ProgramData\\MathWorks\\startup.log'."
       }
     }
   },
@@ -115,10 +122,27 @@
     "location": "[resourceGroup().location]",
     "logging": "[parameters('logging')]",
     "workspaceName": "[concat(variables('prefix'), '-logworkspace')]",
-    "extensionsScript": "C:/Windows/Temp/Install-Extensions.ps1",
-    "dcvLicenseServer": "[if(equals(parameters('niceDcvLicenseServer'), ''), 'demo', parameters('niceDcvLicenseServer'))]",
-    "licenseServer": "[if(equals(parameters('matlabLicenseServer'), ''), 'mhlm', parameters('matlabLicenseServer'))]",
-    "customCommandToRun": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('extensionsScript'), ' ', variables('licenseServer'), ' ', parameters('enableNiceDcv'), ' ', parameters('adminUsername'), ' ', variables('dcvLicenseServer'))]",
+    "userDataScript": [
+      "# Copyright 2023 The MathWorks, Inc.",
+      "",
+      "$StartupFolder = \"$Env:ProgramFiles\\MathWorks\\startup\"",
+      "# Load startup variables",
+      "If (Test-Path $StartupFolder\\env.ps1) {",
+      "    . $StartupFolder\\env.ps1",
+      "}",
+      "",
+      "# Define startup parameters",
+      "[concat('$Env:MLMLicenseFile=\"', parameters('matlabLicenseServer'), '\"')]",
+      "[concat('$Env:EnableNiceDCV=\"', parameters('enableNiceDcv'), '\"')]",
+      "[concat('$Env:Username=\"', parameters('adminUsername'), '\"')]",
+      "[concat('$Env:NiceDCVLicense=\"', parameters('niceDcvLicenseServer'), '\"')]",
+      "[concat('$Env:OptionalUserCommand=', '''', parameters('optionalUserCommand'), '''')]",
+      "",
+      "# Run startup scripts",
+      "Start-Transcript -Path $Env:ProgramData\\MathWorks\\startup.log -Append",
+      "Get-ChildItem $StartupFolder | Where-Object { $_ -match '^[0-9]+_.+$' } | Sort-Object | ForEach-Object { Write-Output \"startup: executing $_\"; & $_.FullName }",
+      "Stop-Transcript"
+    ],
     "networkSecurityGroupName": "[concat(variables('prefix'), '-rdp-nsg')]",
     "publicIp": "[concat(variables('prefix'), '-publicIP')]",
     "domainNameLabel": "[concat(variables('prefix'), '-azure-', uniqueString(resourceGroup().id))]",
@@ -132,7 +156,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2022b",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
@@ -627,7 +651,7 @@
       ]
     },
     {
-      "apiVersion": "2022-03-01",
+      "apiVersion": "2023-03-01",
       "type": "Microsoft.Compute/virtualMachines",
       "location": "[resourceGroup().location]",
       "tags": "[variables('tagsForAll')]",
@@ -675,19 +699,20 @@
           "bootDiagnostics": {
             "enabled": false
           }
-        }
+        },
+        "userData": "[base64(join(variables('userDataScript'), '\r\n'))]"
       },
       "resources": [
         {
-          "type": "Microsoft.Compute/virtualMachines/extensions",
-          "apiVersion": "2022-03-01",
-          "name": "[concat(variables('vmName'),'/Installing-Extensions')]",
+          "type": "extensions",
+          "apiVersion": "2023-03-01",
+          "name": "startup",
           "location": "[resourceGroup().location]",
           "dependsOn": [
             "[resourceId('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
           ],
           "tags": {
-            "displayName": "Installing-Extensions"
+            "displayName": "startup"
           },
           "properties": {
             "publisher": "Microsoft.Compute",
@@ -695,7 +720,7 @@
             "typeHandlerVersion": "1.10",
             "autoUpgradeMinorVersion": true,
             "protectedSettings": {
-              "commandToExecute": "[variables('customCommandToRun')]"
+              "commandToExecute": "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{'Metadata'='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
             }
           }
         },
@@ -706,7 +731,7 @@
           "apiVersion": "2022-03-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[resourceId('Microsoft.Compute/virtualMachines/extensions/', variables('vmName'), 'Installing-Extensions')]",
+            "[resourceId('Microsoft.Compute/virtualMachines/extensions/', variables('vmName'), 'startup')]",
             "[resourceId('Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]",
             "[resourceId('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
           ],

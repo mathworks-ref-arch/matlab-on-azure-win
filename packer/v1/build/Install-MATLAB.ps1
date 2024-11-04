@@ -38,13 +38,19 @@ function Install-MATLABUsingMPM {
 
     Write-Output 'Installing products ...'
     $ProductsList = $Products -Split ' '
+    
+    # Determine if --doc flag should be added
+    $UseDocFlag = $Release -in @('R2022b', 'R2022a')
+    $DocFlag = if ($UseDocFlag) { "--doc" } else { "" }
+    
     try {
         # Check if SourceURL is empty
         if ($SourceURL.length -eq 0) {
             # Install MATLAB directly from the release and products list
             & "$Env:TEMP\mpm.exe" install `
                 --release $Release `
-                --products $ProductsList
+                --products $ProductsList `
+                $DocFlag
         }
         else {
             # Dot-sourcing the Mount-MATLABSource script
@@ -61,7 +67,8 @@ function Install-MATLABUsingMPM {
                 # Install MATLAB from the mounted file share
                 & "$Env:TEMP\mpm.exe" install `
                     --source "${MATLABSourceDrive}:\dvd\archives\" `
-                    --products $ProductsList
+                    --products $ProductsList `
+                    $DocFlag
 
                 # Remove the source location
                 Remove-SMBMapping -LocalPath "${MATLABSourceDrive}:" -Force -UpdateProfile
