@@ -8,8 +8,11 @@
 .PARAMETER DcvInstallerUrl
     The URL for the NICE DCV installer.
 
+.PARAMETER PythonInstallerUrl
+    The URL for the Python installer.
+
 .NOTES
-    Copyright 2024 The MathWorks, Inc.
+    Copyright 2024-2025 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 
@@ -51,16 +54,36 @@ function Install-AzCLI {
     Write-Output 'Done with Install-AzCLI.'
 }
 
+function Install-Python {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PythonInstallerUrl
+    )
+
+    Write-Output 'Starting Install-Python...'
+
+    Invoke-WebRequest -Uri $PythonInstallerUrl -OutFile 'C:\Windows\Temp\python.exe'
+
+    Write-Output 'Python Installer downloaded successfully. Installing ...'
+    Start-Process 'C:\Windows\Temp\python.exe' -Wait -ArgumentList '/quiet InstallAllUsers=1'
+
+    Write-Output 'Done with Install-Python.'
+}
+
 function Install-Dependencies {
     param(
         [Parameter(Mandatory = $true)]
         [string] $DcvInstallerUrl,
+        
+        [Parameter(Mandatory = $true)]
+        [string] $PythonInstallerUrl,
 
         [Parameter(Mandatory = $true)]
         [string] $EdgeInstallerUrl
     )
    
     Get-NICEDCV -DcvInstallerUrl $DcvInstallerUrl
+    Install-Python -PythonInstallerUrl $PythonInstallerUrl
     Install-EdgeBrowser -EdgeInstallerUrl $EdgeInstallerUrl
     Install-AzCLI
 }
@@ -71,7 +94,7 @@ try {
     Write-Output 'Creating folder for storing logs'
     New-Item -Path 'C:\ProgramData\InstallationLogs' -ItemType Directory
 
-    Install-Dependencies -DcvInstallerUrl $Env:DCV_INSTALLER_URL -EdgeInstallerUrl $Env:EDGE_INSTALLER_URL
+    Install-Dependencies -DcvInstallerUrl $Env:DCV_INSTALLER_URL -PythonInstallerUrl $Env:PYTHON_INSTALLER_URL -EdgeInstallerUrl $Env:EDGE_INSTALLER_URL
 }
 catch {
     $ScriptPath = $MyInvocation.MyCommand.Path

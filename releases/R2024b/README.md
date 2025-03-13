@@ -26,9 +26,11 @@ Click the **Deploy to Azure** button below to deploy the cloud resources on Azur
 | --- | --- |
 | Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024b%2Fazuredeploy-R2024b.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2024b%2Fazuredeploy-existing-vnet-R2024b.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> |
 
-> VM Platform: Windows Server 2022
+> VM Platform: Windows Server 2022 (R2023a and later), Windows Server 2019 (R2022b and earlier)
 
 > MATLAB&reg; Release: R2024b
+
+To deploy a custom machine image, see [Deploy Your Own Machine Image](#deploy-your-own-machine-image).
 
 ## Step 2. Configure the Cloud Resources
 
@@ -43,15 +45,17 @@ Clicking the **Deploy to Azure** button opens the "Custom deployment" page in yo
 | **Vm Size** | The Azure instance type to use for this VM. See [Azure virtual machines](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes) for a list of instance types. |
 | **Client IP Addresses** | IP address range that can be used to access the VM. This must be a valid IP CIDR range of the form x.x.x.x/x. Use the value &lt;your_public_ip_address&gt;/32 to restrict access to only your computer. |
 | **Admin Username** | Admin username for this virtual machine. To avoid any deployment errors, please check the list of [disallowed values](https://docs.microsoft.com/en-us/rest/api/compute/virtual-machines/create-or-update?tabs=HTTP#osprofile) for adminUsername. |
-| **Admin Password** | Choose the password for the admin username. This password is required when logging in remotely to the instance. For the deployment to succeed, your password must meet [Azure's password requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq#what-are-the-password-requirements-when-creating-a-vm-). |
+| **Admin Password** | Choose the password for the admin username. You need this password to log in remotely to the instance.  If you enabled the setting to access MATLAB in a browser, you need to enter this password as an authentication token. Your password must meet the [Azure password requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/faq#what-are-the-password-requirements-when-creating-a-vm-). |
 | **Virtual Network Resource ID** | Resource ID of an existing virtual network to deploy your VM into. You can find this under the Properties of your virtual network. Specify this parameter only when deploying with the Existing Virtual Network option. |
 | **Subnet Name** | Name of an existing subnet within your virtual network to deploy your VM into. Specify this parameter only when deploying with the Existing Virtual Network option. |
 | **Auto Shutdown** | Select the duration after which the VM should be automatically shut down post launch. |
+| **Enable MATLAB Proxy** | Use this setting to access MATLAB in a browser on your cloud instance. Note that the MATLAB session in your browser is different from one you start from the desktop in your Remote Desktop Protocol (RDP) or NICE DCV session. |
 | **Enable NICE DCV** | Choose whether to create a [NICE DCV](https://aws.amazon.com/hpc/dcv/) connection to this VM. If you select 'Yes', NICE DCV will be configured with a 30 days trial license (unless a production license is provided). You can access the desktop on a browser using the NICE DCV connection URL in the Outputs section of the deployment page once the resource group is successfully deployed. By using NICE DCV, you agree to the terms and conditions outlined in the [NICE DCV End User License Agreement](https://www.nice-dcv.com/eula.html). If you select 'No', then, NICE DCV will not be installed in the VM and you can connect to the VM using a remote desktop connection (RDP). |
 | **NICE DCV License Server** | If you have opted to enable NICE DCV and have a production license, use this optional parameter to specify the NICE DCV license server's port and hostname (or IP address) in the form of port@hostname. This field must be left blank if you have opted not to enable NICE DCV or want to use NICE DCV with a trial license. |
 | **MATLAB License Server** | Optional License Manager for MATLAB, specified as a string in the form port@hostname. If not specified, online licensing is used. If specified, the license manager must be accessible from the specified virtual network and subnets. For more information, see https://github.com/mathworks-ref-arch/license-manager-for-matlab-on-azure. |
 | **Logging** | Choose whether you want to enable [Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/agents/data-sources-custom-logs) logging for the MATLAB instance. To see the logs, go to the log workspace in your resource group and click on Logs. You can also view the logs in your virtual machine Logs section. |
 | **Optional User Command** | Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable("CLOUD","AZURE", "Machine");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest "https://www.example.com/script.ps1" -OutFile script.ps1; .\script.ps1&gt;. Find the logs at '$Env:ProgramData\MathWorks\startup.log'. |
+| **Image ID** | Optional Resource ID of a custom managed image in the target region. To use a prebuilt MathWorks image instead, leave this field empty. If you customize the build, for example by removing or modifying the included scripts, this can make the image incompatible with the provided ARM template. To ensure compatibility, modify the ARM template or image accordingly. |
 
 
 2. Click the **Review + create** button.
@@ -76,15 +80,27 @@ Clicking the **Deploy to Azure** button opens the "Custom deployment" page in yo
 
 5.  Launch any remote desktop client, paste the IP address in the appropriate field, and connect. On the Windows Remote Desktop Client you need to paste the IP address in the **Computer** field and click **Connect**.
 
-6.  If you enabled NICE DCV during deployment, you can access the virtual machine's desktop via the url `https://<public-ip-of-vm>:8443`.
+6.  If you enabled NICE DCV during deployment, you can access the virtual machine's desktop using the URL `https://<public-ip-of-vm>:8443`. On the login screen, use the username and the password you specified while configuring cloud resources in [Step 2](#step-2-configure-cloud-resources).
 
-7. In the login screen, use the username and the password you specified while configuring cloud resources in [Step 2](#step-2-configure-cloud-resources).
+7. If you enabled the setting to access MATLAB in your browser, you can access the desktop on your virtual machine using the URL `https://<public-ip-of-vm>:8123`. When using MATLAB in a browser, use the password you specified during deployment as the 'auth token' for authentication. 
+
+Access to MATLAB in a browser is enabled through `matlab-proxy`, a Python&reg; package developed by  MathWorks&reg;. For details, see [MATLAB Proxy (Github)](https://github.com/mathworks/matlab-proxy).
 
 ## Step 4. Start MATLAB
 
-Double-click the MATLAB icon on the virtual machine desktop to start MATLAB. The first time you start MATLAB, you need to enter your MathWorks&reg; Account credentials to license MATLAB. For other ways to license MATLAB, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html). 
+To start MATLAB, double click the MATLAB icon on the desktop in your virtual machine. The first time you start MATLAB, you need to enter your MathWorks Account credentials. For more information about licensing MATLAB, see [MATLAB Licensing in the Cloud](https://www.mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html). 
 
 >**Note**: It may take up to a minute for MATLAB to start the first time.
+
+# Deploy Your Own Machine Image
+For details of the scripts which form the basis of the MathWorks Windows managed image build process,
+see [Build Your Own Machine Image](https://github.com/mathworks-ref-arch/matlab-on-azure-win/blob/main/packer/v1/README.md).
+You can use these scripts to build your own custom Windows machine image for running MATLAB on Azure.
+You can then deploy this custom image with the above MathWorks infrastructure as code (IaC) templates.
+To launch a custom image, the following fields are required by the templates.
+| Argument Name | Description |
+|---|---|
+|`Image ID` | Resource ID of the custom managed image. This is the `artifact_id` listed in the `manifest.json`. |
 
 # Additional Information
 
@@ -103,6 +119,6 @@ If your resource group fails to deploy, check the Deployments section of the Res
 
 ----
 
-Copyright 2020-2024 The MathWorks, Inc.
+Copyright 2020-2025 The MathWorks, Inc.
 
 ----

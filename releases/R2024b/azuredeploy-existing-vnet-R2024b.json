@@ -27,7 +27,7 @@
       "type": "securestring",
       "defaultValue": "",
       "metadata": {
-        "description": "Choose the password for the admin username. This password is required when logging in remotely to the instance. For the deployment to succeed, your password must meet [Azure's password requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq#what-are-the-password-requirements-when-creating-a-vm-)."
+        "description": "Choose the password for the admin username. You need this password to log in remotely to the instance.  If you enabled the setting to access MATLAB in a browser, you need to enter this password as an authentication token. Your password must meet the [Azure password requirements](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/faq#what-are-the-password-requirements-when-creating-a-vm-)."
       }
     },
     "virtualNetworkResourceID": {
@@ -76,6 +76,17 @@
         "description": "Select the duration after which the VM should be automatically shut down post launch."
       }
     },
+    "enableMatlabProxy": {
+      "type": "string",
+      "metadata": {
+        "description": "Use this setting to access MATLAB in a browser on your cloud instance. Note that the MATLAB session in your browser is different from one you start from the desktop in your Remote Desktop Protocol (RDP) or NICE DCV session."
+      },
+      "defaultValue": "Yes",
+      "allowedValues": [
+        "Yes",
+        "No"
+      ]
+    },
     "enableNiceDcv": {
       "type": "string",
       "allowedValues": [
@@ -118,6 +129,13 @@
       "metadata": {
         "description": "Provide an optional inline PowerShell command to run on machine launch. For example, to set an environment variable CLOUD=AZURE, use this command excluding the angle brackets: &lt;[System.Environment]::SetEnvironmentVariable(\"CLOUD\",\"AZURE\", \"Machine\");&gt;. You can use either double quotes or two single quotes. To run an external script, use this command excluding the angle brackets: &lt;Invoke-WebRequest \"https://www.example.com/script.ps1\" -OutFile script.ps1; .\\script.ps1&gt;. Find the logs at '$Env:ProgramData\\MathWorks\\startup.log'."
       }
+    },
+    "imageID": {
+      "type": "String",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional Resource ID of a custom managed image in the target region. To use a prebuilt MathWorks image instead, leave this field empty. If you customize the build, for example by removing or modifying the included scripts, this can make the image incompatible with the provided ARM template. To ensure compatibility, modify the ARM template or image accordingly."
+      }
     }
   },
   "variables": {
@@ -146,6 +164,7 @@
       "# Define startup parameters",
       "[concat('$Env:MLMLicenseFile=\"', parameters('matlabLicenseServer'), '\"')]",
       "[concat('$Env:EnableNiceDCV=\"', parameters('enableNiceDcv'), '\"')]",
+      "[concat('$Env:EnableMATLABProxy=\"', parameters('enableMatlabProxy'), '\"')]",
       "[concat('$Env:Username=\"', parameters('adminUsername'), '\"')]",
       "[concat('$Env:NiceDCVLicense=\"', parameters('niceDcvLicenseServer'), '\"')]",
       "[concat('$Env:OptionalUserCommand=', '''', parameters('optionalUserCommand'), '''')]",
@@ -168,7 +187,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2024b",
-    "version": "1.0.0",
+    "version": "20242.5.354007",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
@@ -179,6 +198,9 @@
       "name": "[variables('sku')]",
       "publisher": "[variables('publisher')]",
       "product": "[variables('offer')]"
+    },
+    "imageResourceID": {
+      "id": "[parameters('imageID')]"
     },
     "functionAppName": "[concat('mw-autoshutdownapp', uniqueString(resourceGroup().id))]",
     "runtimeStack": "powershell",
@@ -259,6 +281,19 @@
               "sourceAddressPrefix": "[parameters('ClientIPAddresses')]",
               "protocol": "Tcp",
               "destinationPortRange": "8443",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          },
+          {
+            "name": "allow-matlab-proxy",
+            "properties": {
+              "priority": 1003,
+              "sourceAddressPrefix": "[parameters('clientIPAddresses')]",
+              "protocol": "Tcp",
+              "destinationPortRange": "8123",
               "access": "Allow",
               "direction": "Inbound",
               "sourcePortRange": "*",
@@ -668,11 +703,7 @@
       "location": "[resourceGroup().location]",
       "tags": "[variables('tagsForAll')]",
       "name": "[variables('vmName')]",
-      "plan": {
-        "name": "[variables('sku')]",
-        "publisher": "[variables('publisher')]",
-        "product": "[variables('offer')]"
-      },
+      "plan": "[if(empty(parameters('imageId')), variables('plan') , null())]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
       ],
@@ -681,12 +712,7 @@
           "VmSize": "[parameters('VmSize')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('publisher')]",
-            "offer": "[variables('offer')]",
-            "sku": "[variables('sku')]",
-            "version": "[variables('version')]"
-          },
+          "imageReference": "[if(empty(parameters('imageId')), variables('imageReference'), variables('imageResourceID'))]",
           "osDisk": {
             "createOption": "FromImage",
             "managedDisk": {
@@ -732,7 +758,7 @@
             "typeHandlerVersion": "1.10",
             "autoUpgradeMinorVersion": true,
             "protectedSettings": {
-              "commandToExecute": "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{'Metadata'='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
+              "commandToExecute": "[concat('powershell.exe -Command \"$Env:Password=''', base64(parameters('adminPassword')), ''';$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{''Metadata''=''true''} -Method GET -Uri ''http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text'')))); Invoke-Command -ScriptBlock $UserData\"')]"
             }
           }
         },
@@ -914,6 +940,11 @@
     "RDP Connection": {
       "type": "String",
       "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIP'))).dnsSettings.fqdn]"
+    },
+    "BrowserConnection": {
+      "type": "String",
+      "condition": "[equals(parameters('enableMatlabProxy'), 'Yes')]",
+      "value": "[concat('https://',reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIP'))).dnsSettings.fqdn,':8123')]"
     }
   }
 }

@@ -1,4 +1,4 @@
-# Copyright 2024 The MathWorks, Inc.
+# Copyright 2024-2025 The MathWorks, Inc.
 
 // Use this Packer configuration file to build an Azure VHD with MATLAB R2022a installed.
 // For more information on these variables, see /packer/v1/build-azure-matlab.pkr.hcl.
@@ -7,6 +7,7 @@ STARTUP_SCRIPTS = [
   "env.ps1",
   "10_Install-NiceDCV.ps1",
   "20_Setup-MATLAB.ps1",
+  "30_Setup-DDUX.ps1",
   "90_WarmUp-MATLAB.ps1",
   "99_Run-Optional-User-Command.ps1"
 ]

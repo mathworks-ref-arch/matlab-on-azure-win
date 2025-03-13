@@ -1,4 +1,13 @@
-# Copyright 2024 The MathWorks, Inc.
+# Copyright 2024-2025 The MathWorks, Inc.
+
+packer {
+  required_plugins {
+    azure = {
+      source = "github.com/hashicorp/azure"
+      version = "~> 2"
+    }
+  }
+}
 
 # The following variables may have different values across MATLAB releases.
 # MathWorks recommends that you modify them via the configuration file specific to each release.
@@ -18,7 +27,7 @@ variable "SPKGS" {
 
 variable "RELEASE" {
   type        = string
-  default     = "R2024a"
+  default     = "R2024b"
   description = "Target MATLAB release to install in the machine image, must start with \"R\"."
 
   validation {
@@ -44,6 +53,7 @@ variable "BUILD_SCRIPTS" {
   default = [
     "Install-StartupScripts.ps1",
     "Install-Dependencies.ps1",
+    "Install-MATLABProxy.ps1",
     "Install-NVIDIADrivers.ps1",
     "Install-MATLAB.ps1",
     "Install-MATLABSupportPackages.ps1",
@@ -60,11 +70,20 @@ variable "STARTUP_SCRIPTS" {
     "env.ps1",
     "10_Install-NiceDCV.ps1",
     "20_Setup-MATLAB.ps1",
+    "40_Setup-MATLABProxy.ps1",
     "90_WarmUp-MATLAB.ps1",
     "95_WarmUp-MSH.ps1",
     "99_Run-Optional-User-Command.ps1"
   ]
   description = "The list of startup scripts Packer will copy to the remote machine image build, which can be used during the deployment creation."
+}
+
+variable "RUNTIME_SCRIPTS" {
+  type = list(string)
+  default = [
+    "Start-MATLABProxy.ps1",
+  ]
+  description = "The list of runtime scripts Packer will copy to the remote machine image builder, which can be used after the Azure Resource Manager deployment."
 }
 
 variable "DCV_INSTALLER_URL" {
@@ -96,46 +115,54 @@ variable "PYTHON_INSTALLER_URL" {
   description = "The URL to install python into the target machine image."
 }
 
+variable "MATLAB_PROXY_VERSION" {
+  type        = string
+  default     = ""
+  description = "The version of the matlab-proxy python package to install on the machine."
+}
+
 variable "TENANT_ID" {
   type        = string
   description = "The Microsoft Entra ID tenant identifier with which your client_id and subscription_id are associated."
+  sensitive   = true
 }
 
 variable "CLIENT_ID" {
   type        = string
   description = "The Microsoft Entra ID service principal associated with your builder."
+  sensitive   = true
 }
 
 variable "CLIENT_SECRET" {
   type        = string
   description = "The password or secret for your service principal."
+  sensitive   = true
 }
 
 variable "USER_ASSIGNED_MANAGED_IDENTITIES" {
   type        = list(string)
   default     = []
   description = "List of resource IDs of user-assigned managed identities to assign to the Packer builder Virtual Machine."
+  sensitive   = true
 }
 
 variable "AZURE_KEY_VAULT" {
   type        = string
   default     = ""
   description = "Optional parameter to enter an Azure Key Vault name that can be used to store or retrieve sensitive information during Packer builds."
+  sensitive   = true
 }
 
 variable "RESOURCE_GROUP_NAME" {
   type        = string
+  default     = ""
   description = "Resource group under which the final artifact will be stored"
-}
-
-variable "STORAGE_ACCOUNT" {
-  type        = string
-  description = "Storage account under which the final artifact will be stored."
 }
 
 variable "SUBSCRIPTION_ID" {
   type        = string
   description = "Subscription under which the build will be performed."
+  sensitive   = true
 }
 
 variable "AZURE_TAGS" {
@@ -194,43 +221,43 @@ variable "VM_SIZE" {
 
 # Set up local variables used by provisioners.
 locals {
+  image_uuid            = uuidv4()
   timestamp             = regex_replace(timestamp(), "[- TZ:]", "")
   build_scripts         = [for s in var.BUILD_SCRIPTS : format("build/%s", s)]
   startup_scripts       = [for s in var.STARTUP_SCRIPTS : format("startup/%s", s)]
+  runtime_scripts       = [for s in var.RUNTIME_SCRIPTS : format("runtime/%s", s)]
   packer_admin_username = "${var.PACKER_ADMIN_USERNAME}"
   packer_admin_password = "${var.PACKER_ADMIN_PASSWORD}"
 }
 
 # Configure the AZURE instance that is used to build the machine image.
-source "azure-arm" "VHD_Builder" {
-  communicator                     = "winrm"
-  winrm_username                   = "${local.packer_admin_username}"
-  winrm_password                   = "${local.packer_admin_password}"
-  winrm_use_ssl                    = true
-  winrm_insecure                   = true
-  winrm_timeout                    = "30m"
-  client_id                        = "${var.CLIENT_ID}"
-  client_secret                    = "${var.CLIENT_SECRET}"
-  resource_group_name              = "${var.RESOURCE_GROUP_NAME}"
-  storage_account                  = "${var.STORAGE_ACCOUNT}"
-  subscription_id                  = "${var.SUBSCRIPTION_ID}"
-  tenant_id                        = "${var.TENANT_ID}"
-  user_assigned_managed_identities = "${var.USER_ASSIGNED_MANAGED_IDENTITIES}"
-  capture_container_name           = "images"
-  capture_name_prefix              = "matlab-${var.RELEASE}"
-  os_type                          = "Windows"
-  image_publisher                  = "${var.IMAGE_PUBLISHER}"
-  image_offer                      = "${var.IMAGE_OFFER}"
-  image_sku                        = "${var.IMAGE_SKU}"
-  azure_tags                       = "${var.AZURE_TAGS}"
-  location                         = "East US"
-  vm_size                          = "${var.VM_SIZE}"
-  os_disk_size_gb                  = "128"
+source "azure-arm" "Image_Builder" {
+  communicator                      = "winrm"
+  winrm_username                    = "${local.packer_admin_username}"
+  winrm_password                    = "${local.packer_admin_password}"
+  winrm_use_ssl                     = true
+  winrm_insecure                    = true
+  winrm_timeout                     = "30m"
+  client_id                         = "${var.CLIENT_ID}"
+  client_secret                     = "${var.CLIENT_SECRET}"
+  managed_image_resource_group_name = "${var.RESOURCE_GROUP_NAME}"
+  managed_image_name                = "matlab-win-${var.RELEASE}-${local.image_uuid}"
+  subscription_id                   = "${var.SUBSCRIPTION_ID}"
+  tenant_id                         = "${var.TENANT_ID}"
+  user_assigned_managed_identities  = "${var.USER_ASSIGNED_MANAGED_IDENTITIES}"
+  os_type                           = "Windows"
+  image_publisher                   = "${var.IMAGE_PUBLISHER}"
+  image_offer                       = "${var.IMAGE_OFFER}"
+  image_sku                         = "${var.IMAGE_SKU}"
+  azure_tags                        = "${var.AZURE_TAGS}"
+  location                          = "East US"
+  vm_size                           = "${var.VM_SIZE}"
+  os_disk_size_gb                   = "128"
 }
 
 # Build the machine image.
 build {
-  sources = ["source.azure-arm.VHD_Builder"]
+  sources = ["source.azure-arm.Image_Builder"]
   provisioner "file" {
     destination = "C:/Windows/Temp/"
     source      = "build/config"
@@ -239,6 +266,11 @@ build {
   provisioner "file" {
     destination = "C:/Windows/Temp/startup/"
     sources     = "${local.startup_scripts}"
+  }
+
+  provisioner "file" {
+    destination = "C:/Windows/Temp/runtime/"
+    sources     = "${local.runtime_scripts}"
   }
 
   provisioner "powershell" {
@@ -258,31 +290,34 @@ build {
       "PYTHON_INSTALLER_URL=${var.PYTHON_INSTALLER_URL}",
       "MATLAB_SOURCE_LOCATION=${var.MATLAB_SOURCE_LOCATION}",
       "SPKG_SOURCE_LOCATION=${var.SPKG_SOURCE_LOCATION}",
-      "AZURE_KEY_VAULT=${var.AZURE_KEY_VAULT}"
+      "AZURE_KEY_VAULT=${var.AZURE_KEY_VAULT}",
+      "MATLAB_PROXY_VERSION=${var.MATLAB_PROXY_VERSION}"
     ]
     scripts = "${local.build_scripts}"
   }
   provisioner "powershell" {
     scripts = ["build/Remove-TemporaryFiles.ps1"]
   }
+  
   provisioner "windows-restart" {
     restart_check_command = "powershell -command \"& {Write-Output 'restarted.'}\""
     restart_timeout       = "10m"
   }
+
   provisioner "powershell" {
     pause_before = "90s"
     scripts      = ["build/Invoke-Sysprep.ps1"]
   }
+
   post-processor "manifest" {
     output     = "${var.MANIFEST_OUTPUT_FILE}"
     strip_path = true
     custom_data = {
-      release             = "MATLAB ${var.RELEASE}"
-      specified_products  = "${var.PRODUCTS}"
-      specified_spkgs     = "${var.SPKGS}"
-      build_scripts       = join(", ", "${var.BUILD_SCRIPTS}")
-      storage_account     = "${var.STORAGE_ACCOUNT}"
-      resource_group_name = "${var.RESOURCE_GROUP_NAME}"
+      release                           = "MATLAB ${var.RELEASE}"
+      specified_products                = "${var.PRODUCTS}"
+      specified_spkgs                   = "${var.SPKGS}"
+      build_scripts                     = join(", ", "${var.BUILD_SCRIPTS}")
+      managed_image_resource_group_name = "${var.RESOURCE_GROUP_NAME}"
     }
   }
 }

@@ -9,7 +9,7 @@
         Installs MATLAB using MATLAB Package Manager.
 
 .NOTES
-    Copyright 2020-2024 The MathWorks, Inc.
+    Copyright 2020-2025 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 
@@ -38,19 +38,13 @@ function Install-MATLABUsingMPM {
 
     Write-Output 'Installing products ...'
     $ProductsList = $Products -Split ' '
-    
-    # Determine if --doc flag should be added
-    $UseDocFlag = $Release -in @('R2022b', 'R2022a')
-    $DocFlag = if ($UseDocFlag) { "--doc" } else { "" }
-    
     try {
         # Check if SourceURL is empty
         if ($SourceURL.length -eq 0) {
             # Install MATLAB directly from the release and products list
             & "$Env:TEMP\mpm.exe" install `
                 --release $Release `
-                --products $ProductsList `
-                $DocFlag
+                --products $ProductsList
         }
         else {
             # Dot-sourcing the Mount-MATLABSource script
@@ -67,8 +61,7 @@ function Install-MATLABUsingMPM {
                 # Install MATLAB from the mounted file share
                 & "$Env:TEMP\mpm.exe" install `
                     --source "${MATLABSourceDrive}:\dvd\archives\" `
-                    --products $ProductsList `
-                    $DocFlag
+                    --products $ProductsList
 
                 # Remove the source location
                 Remove-SMBMapping -LocalPath "${MATLABSourceDrive}:" -Force -UpdateProfile
@@ -181,48 +174,20 @@ function Install-Certificates {
     Write-Output 'Done with Install-Certificates.'
 }
 
-function Install-Python {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$PythonInstallerUrl
-    )
-    Set-Location C:\Windows\Temp
-    Write-Output 'Starting Install-Python...'
-
-    Invoke-WebRequest -Uri $PythonInstallerUrl -OutFile 'C:\Windows\Temp\python-installer.exe'
-
-    Write-Output 'Python Installer downloaded successfully. Installing ...'
-    Start-Process 'C:\Windows\Temp\python-installer.exe' -Wait -ArgumentList '/quiet InstallAllUsers=0 Include_launcher=0 TargetDir="C:\Program Files\PythonTemp"'
-
-    Write-Output 'Done with Install-Python.'
-}
-
-function Uninstall-Python {
-    Write-Output 'Starting Uninstall-Python...'
-
-    Start-Process 'C:\Windows\Temp\python-installer.exe' -Wait -ArgumentList '/quiet /Uninstall'
-
-    Write-Output 'Done with Uninstall-Python.'
-}
-
 function Generate-ToolboxCache {
     param(
         [Parameter(Mandatory = $true)]
         [string] $Release
     )
    
-    Install-Python -PythonInstallerUrl $Env:PYTHON_INSTALLER_URL 
-    
     Write-Output 'Generate Toolbox cache xml if MATLAB version is greater than or equal to 2021b'
     # Toolbox cache generation is supported from R2021b onwards.
     if ($Release -ge 'R2021b') {
-        & 'C:\Program Files\PythonTemp\python.exe' C:\Windows\Temp\config\matlab\generate_toolbox_cache.py "C:\Program Files\MATLAB\$Release" "C:\Program Files\MATLAB\$Release\toolbox\local"
+        & 'C:\Program Files\Python310\python.exe' C:\Windows\Temp\config\matlab\generate_toolbox_cache.py "C:\Program Files\MATLAB\$Release" "C:\Program Files\MATLAB\$Release\toolbox\local"
     }
     else {
         Write-Host "Unable to generate Toolbox cache xml as version $Release is less than R2021b."
     }
-
-    Uninstall-Python
 }
 
 function Add-DesktopShortcut {

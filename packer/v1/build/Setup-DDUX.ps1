@@ -11,15 +11,15 @@
     Set-DDUX
 
 .NOTES
-    Copyright 2024 The MathWorks, Inc.
+    Copyright 2025 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 function Set-DDUX {
 
     Write-Output 'Starting Set-DDUX...'
 
-    [Environment]::SetEnvironmentVariable("MW_CONTEXT_TAGS", "MATLAB:AZURE:PACKERFILE:V1", "Machine")
-    [Environment]::SetEnvironmentVariable("MW_DDUX_FORCE_ENABLE", "$true", "Machine")
+    [Environment]::SetEnvironmentVariable('MW_CONTEXT_TAGS', 'MATLAB:AZURE:PACKERFILE:V1', 'Machine')
+    [Environment]::SetEnvironmentVariable('MW_DDUX_FORCE_ENABLE', "$true", 'Machine')
 
     Write-Output 'Done with Set-DDUX.'
 }
