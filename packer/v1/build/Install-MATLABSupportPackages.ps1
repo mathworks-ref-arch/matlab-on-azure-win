@@ -6,7 +6,7 @@
     https://github.com/mathworks-ref-arch/matlab-dockerfile/blob/main/MPM.md
 
 .NOTES
-    Copyright 2024 The MathWorks, Inc.
+    Copyright 2024-2025 The MathWorks, Inc.
     The function sets $ErrorActionPreference to 'Stop' to ensure that any errors encountered during the installation process will cause the script to stop and throw an error.
 #>
 
@@ -29,6 +29,7 @@ function Install-MATLABSPKGUsingMPM {
 
     # As a best practice, downloading the latest version of mpm before calling it.
     Write-Output 'Downloading mpm ...'
+    
     Invoke-WebRequest -OutFile "$Env:TEMP\mpm.exe" -Uri 'https://www.mathworks.com/mpm/win64/mpm'
 
     $MpmLogFilePath = "$Env:TEMP\mathworks_$Env:USERNAME.log"

@@ -26,6 +26,7 @@ To view instructions for deploying the MATLAB reference architecture, select a M
 
 | Linux | Windows |
 | ----- | ------- |
+| [R2025a](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2025a/README.md) | [R2025a](releases/R2025a/README.md) |
 | [R2024b](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2024b/README.md) | [R2024b](releases/R2024b/README.md) |
 | [R2024a](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2024a/README.md) | [R2024a](releases/R2024a/README.md) |
 | [R2023b](https://github.com/mathworks-ref-arch/matlab-on-azure/tree/master/releases/R2023b/README.md) | [R2023b](releases/R2023b/README.md) |
@@ -50,7 +51,7 @@ For details of the scripts which form the basis of the MathWorks Windows referen
 see [Build Your Own Machine Image](./packer/v1).
 You can use these scripts to build your own custom Windows machine image for running MATLAB on Azure,
 which you can deploy with the MathWorks infrastructure as code (IaC) templates.
-To launch the built image, see [Deploy Your Own Machine Image](releases/R2024b/README.md#deploy-your-own-machine-image).
+To launch the built image, see [Deploy Your Own Machine Image](releases/R2025a/README.md#deploy-your-own-machine-image).
 
 # Architecture and Resources
 Deploying this reference architecture will create several resources in your resource group.
