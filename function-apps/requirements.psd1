@@ -5,7 +5,7 @@ See https://aka.ms/functionsmanageddependency for additional information.
 Copyright 2023-2025 The MathWorks, Inc.
 #>
 @{
-    'Az.Compute' = '10.*'
-    'Az.Accounts' = '5.*'
-    'Az.Resources' = '8.*'
+'Az.Compute' = '10.*'
+'Az.Accounts' = '5.*'
+'Az.Resources' = '8.*'
 }

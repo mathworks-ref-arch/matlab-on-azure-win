@@ -27,7 +27,7 @@ variable "SPKGS" {
 
 variable "RELEASE" {
   type        = string
-  default     = "R2024b"
+  default     = "R2025b"
   description = "Target MATLAB release to install in the machine image, must start with \"R\"."
 
   validation {
@@ -181,17 +181,10 @@ variable "MANIFEST_OUTPUT_FILE" {
   description = "The name of the resultant manifest file."
 }
 
-
 variable "PACKER_ADMIN_USERNAME" {
   type        = string
-  default     = "Administrator"
-  description = "Username for the build instance."
-}
-
-variable "PACKER_ADMIN_PASSWORD" {
-  type        = string
-  description = "Password for the build instance. Must be provided as a build argument. Must satisfy password complexity requirements of base operating system."
-  sensitive   = true
+  default     = "packer"
+  description = "Username for the build instance. Packer will use this username to SSH into the instance."
 }
 
 variable "IMAGE_PUBLISHER" {
@@ -216,7 +209,44 @@ variable "VM_SIZE" {
   type        = string
   default     = "Standard_NC4as_T4_v3"
   description = "Size of base Azure VM."
+}
 
+# Optional networking configuration for the Packer Builder VM
+variable "VIRTUAL_NETWORK_NAME" {
+  type        = string
+  default     = ""
+  description = "(Optional) The name of the virtual network to use for the Packer builder VM."
+}
+
+variable "SUBNET_NAME" {
+  type        = string
+  default     = ""
+  description = "(Optional) The name of the subnet within the virtual network to use for the Packer builder VM."
+}
+
+variable "VIRTUAL_NETWORK_RESOURCE_GROUP" {
+  type        = string
+  default     = ""
+  description = "(Optional) Name of the resource group containing the virtual network to use for the Packer builder VM."
+}
+
+# Optional SSH Bastion host configuration
+variable "SSH_BASTION_HOST" {
+  type        = string
+  default     = ""
+  description = "(Optional) A bastion host to use for the actual SSH connection."
+}
+
+variable "SSH_BASTION_USERNAME" {
+  type        = string
+  default     = ""
+  description = "(Optional) The username to use when connecting to the bastion host via SSH."
+}
+
+variable "SSH_BASTION_PASSWORD" {
+  type        = string
+  default     = ""
+  description = "(Optional) The password to use when connecting to the bastion host via SSH."
 }
 
 # Set up local variables used by provisioners.
@@ -226,18 +256,30 @@ locals {
   build_scripts         = [for s in var.BUILD_SCRIPTS : format("build/%s", s)]
   startup_scripts       = [for s in var.STARTUP_SCRIPTS : format("startup/%s", s)]
   runtime_scripts       = [for s in var.RUNTIME_SCRIPTS : format("runtime/%s", s)]
-  packer_admin_username = "${var.PACKER_ADMIN_USERNAME}"
-  packer_admin_password = "${var.PACKER_ADMIN_PASSWORD}"
 }
 
 # Configure the AZURE instance that is used to build the machine image.
 source "azure-arm" "Image_Builder" {
-  communicator                      = "winrm"
-  winrm_username                    = "${local.packer_admin_username}"
-  winrm_password                    = "${local.packer_admin_password}"
-  winrm_use_ssl                     = true
-  winrm_insecure                    = true
-  winrm_timeout                     = "30m"
+  communicator                        = "ssh"
+  ssh_username                        = "${var.PACKER_ADMIN_USERNAME}"
+  # Inject SSH setup script as base64 encoded user-data
+  user_data                           = base64encode(file("./build/config/packer/Enable-OpenSSh.ps1"))
+  # Use custom script extension for Windows VMs to run the user-data
+  custom_script                       = "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{Metadata='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
+
+  # Optional configuration for SSH Bastion Host setup
+  ssh_bastion_host                    = "${var.SSH_BASTION_HOST}"
+  ssh_bastion_username                = "${var.SSH_BASTION_USERNAME}"
+  ssh_bastion_password                = "${var.SSH_BASTION_PASSWORD}"
+
+  # Optional networking setup for the Packer Builder VM
+  virtual_network_name                = "${var.VIRTUAL_NETWORK_NAME}"
+  virtual_network_resource_group_name = "${var.VIRTUAL_NETWORK_RESOURCE_GROUP}"
+  virtual_network_subnet_name         = "${var.SUBNET_NAME}"
+
+  # Assigning a Public IP to the Packer Builder VM for internet connectivity
+  private_virtual_network_with_public_ip = "true"
+
   client_id                         = "${var.CLIENT_ID}"
   client_secret                     = "${var.CLIENT_SECRET}"
   managed_image_resource_group_name = "${var.RESOURCE_GROUP_NAME}"
@@ -263,6 +305,13 @@ build {
     source      = "build/config"
   }
 
+  provisioner "powershell" {
+    inline = [
+      "New-Item -Path 'C:/Windows/Temp/startup' -ItemType Directory -Force",
+      "New-Item -Path 'C:/Windows/Temp/runtime' -ItemType Directory -Force"
+    ]
+  }
+
   provisioner "file" {
     destination = "C:/Windows/Temp/startup/"
     sources     = "${local.startup_scripts}"
@@ -271,12 +320,6 @@ build {
   provisioner "file" {
     destination = "C:/Windows/Temp/runtime/"
     sources     = "${local.runtime_scripts}"
-  }
-
-  provisioner "powershell" {
-    elevated_user     = "${local.packer_admin_username}"
-    elevated_password = "${local.packer_admin_password}"
-    scripts           = ["build/Enable-OpenSSh.ps1"]
   }
 
   provisioner "powershell" {
@@ -296,6 +339,9 @@ build {
     scripts = "${local.build_scripts}"
   }
   provisioner "powershell" {
+    environment_vars = [
+      "RELEASE=${var.RELEASE}"
+    ]
     scripts = ["build/Remove-TemporaryFiles.ps1"]
   }
   

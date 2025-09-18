@@ -26,7 +26,7 @@
     This example mounts the Azure File Share "myfileshare" to the "Z" drive using credentials stored in the Azure Key Vault "myKeyVault".
 
 .NOTES
-    Copyright 2024 The MathWorks, Inc.
+    Copyright 2024-2025 The MathWorks, Inc.
 #>
 
 function Mount-MATLABSource {
@@ -46,6 +46,9 @@ function Mount-MATLABSource {
         [Parameter(Mandatory=$true)]
         [string]$DriveToMount
     )
+
+    # Refresh the PATH to find az cli installation path.
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
     az login --identity
 

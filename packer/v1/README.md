@@ -55,7 +55,6 @@ packer build \
     -var TENANT_ID=<tenant_id> \
     -var SUBSCRIPTION_ID=<subscription_id> \
     -var RESOURCE_GROUP_NAME=<resource_group> \
-    -var PACKER_ADMIN_PASSWORD=<admin_password> \ 
     build-azure-matlab.pkr.hcl
 ```
 
@@ -78,7 +77,6 @@ supports these build-time variables.
 | TENANT_ID           | *unset* | Tenant ID of Azure service principal. |
 | SUBSCRIPTION_ID     | *unset* | Azure subscription to use for the build. |
 | RESOURCE_GROUP_NAME | *unset* | Resource group that will store the built image. |
-| PACKER_ADMIN_PASSWORD | *unset* | Password used by Packer to connect to the build instance. Must be at least 12 characters long, and be a combination of uppercase letters, lowercase letters, numbers, and symbols. |
 | AZURE_TAGS          | {Name="Packer Build", Build="MATLAB", Type="matlab-on-azure-win"} | Tags Packer applies to every resource deployed. |
 
 For a full list of the variables used in the build, see the description fields in the

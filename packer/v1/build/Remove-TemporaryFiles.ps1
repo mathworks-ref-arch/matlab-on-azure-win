@@ -9,7 +9,7 @@
     Remove-TemporaryBuildFiles
 
 .NOTES
-    Copyright 2024 The MathWorks, Inc.
+    Copyright 2024-2025 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 
@@ -24,10 +24,11 @@ function Remove-TemporaryBuildFiles {
     Remove-Item C:\Windows\Temp\config -Force -Recurse
 
     # Remove REMOVE_BEFORE_FLIGHT file
-    if (Test-Path "C:\Program Files\MATLAB\R2024b\REMOVE_BEFORE_FLIGHT"){
-        Remove-Item "C:\Program Files\MATLAB\R2024b\REMOVE_BEFORE_FLIGHT"
+    $Release = $Env:RELEASE
+    if (Test-Path "C:\Program Files\MATLAB\${Release}\REMOVE_BEFORE_FLIGHT"){
+        Remove-Item "C:\Program Files\MATLAB\${Release}\REMOVE_BEFORE_FLIGHT"
     } else {
-        Write-Output "C:\Program Files\MATLAB\R2024b\REMOVE_BEFORE_FLIGHT does not exists."
+        Write-Output "C:\Program Files\MATLAB\${Release}\REMOVE_BEFORE_FLIGHT does not exists."
     }
 
 
