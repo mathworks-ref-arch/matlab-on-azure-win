@@ -187,7 +187,7 @@
     "publisher": "mathworks-inc",
     "offer": "matlab-ref-arch-windows-disk",
     "sku": "matlab-ref-arch-win-sku-r2025b",
-    "version": "20252.0.514609",
+    "version": "20252.0.512787",
     "imageReference": {
       "publisher": "[variables('publisher')]",
       "offer": "[variables('offer')]",
