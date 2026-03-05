@@ -3,7 +3,7 @@
 packer {
   required_plugins {
     azure = {
-      source = "github.com/hashicorp/azure"
+      source  = "github.com/hashicorp/azure"
       version = "~> 2"
     }
   }
@@ -31,7 +31,7 @@ variable "RELEASE" {
   description = "Target MATLAB release to install in the machine image, must start with \"R\"."
 
   validation {
-    condition     = can(regex("^R20[0-9][0-9](a|b)(U[0-9])?$", var.RELEASE))
+    condition     = can(regex("^R20[0-9][0-9](a|b)$", var.RELEASE))
     error_message = "The RELEASE value must be a valid MATLAB release, starting with \"R\"."
   }
 }
@@ -119,6 +119,12 @@ variable "MATLAB_PROXY_VERSION" {
   type        = string
   default     = ""
   description = "The version of the matlab-proxy python package to install on the machine."
+}
+
+variable "MSA_URL" {
+  type        = string
+  description = "URL pointing to a valid MATLAB Startup Accelerator file. If left unset, a default URL will be constructed based on the RELEASE variable."
+  default     = null
 }
 
 variable "TENANT_ID" {
@@ -251,26 +257,30 @@ variable "SSH_BASTION_PASSWORD" {
 
 # Set up local variables used by provisioners.
 locals {
-  image_uuid            = uuidv4()
-  timestamp             = regex_replace(timestamp(), "[- TZ:]", "")
-  build_scripts         = [for s in var.BUILD_SCRIPTS : format("build/%s", s)]
-  startup_scripts       = [for s in var.STARTUP_SCRIPTS : format("startup/%s", s)]
-  runtime_scripts       = [for s in var.RUNTIME_SCRIPTS : format("runtime/%s", s)]
+  image_uuid      = uuidv4()
+  timestamp       = regex_replace(timestamp(), "[- TZ:]", "")
+  build_scripts   = [for s in var.BUILD_SCRIPTS : format("build/%s", s)]
+  startup_scripts = [for s in var.STARTUP_SCRIPTS : format("startup/%s", s)]
+  runtime_scripts = [for s in var.RUNTIME_SCRIPTS : format("runtime/%s", s)]
+  # This local variable decides which URL to use.
+  # If var.MSA_URL is not null (meaning the user provided an override), use that value.
+  # Otherwise, construct the URL using var.RELEASE.
+  effective_msa_url = var.MSA_URL != null ? var.MSA_URL : "https://raw.githubusercontent.com/mathworks-ref-arch/iac-building-blocks/refs/heads/main/common/artifacts/msa/${var.RELEASE}/Windows/msa.ini"
 }
 
 # Configure the AZURE instance that is used to build the machine image.
 source "azure-arm" "Image_Builder" {
-  communicator                        = "ssh"
-  ssh_username                        = "${var.PACKER_ADMIN_USERNAME}"
+  communicator = "ssh"
+  ssh_username = "${var.PACKER_ADMIN_USERNAME}"
   # Inject SSH setup script as base64 encoded user-data
-  user_data                           = base64encode(file("./build/config/packer/Enable-OpenSSh.ps1"))
+  user_data = base64encode(file("./build/config/packer/Enable-OpenSSh.ps1"))
   # Use custom script extension for Windows VMs to run the user-data
-  custom_script                       = "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{Metadata='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
+  custom_script = "powershell.exe -Command \"$UserData = [scriptblock]::Create([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String((Invoke-RestMethod -Headers @{Metadata='true'} -Method GET -Uri 'http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01&format=text')))); Invoke-Command -ScriptBlock $UserData\""
 
   # Optional configuration for SSH Bastion Host setup
-  ssh_bastion_host                    = "${var.SSH_BASTION_HOST}"
-  ssh_bastion_username                = "${var.SSH_BASTION_USERNAME}"
-  ssh_bastion_password                = "${var.SSH_BASTION_PASSWORD}"
+  ssh_bastion_host     = "${var.SSH_BASTION_HOST}"
+  ssh_bastion_username = "${var.SSH_BASTION_USERNAME}"
+  ssh_bastion_password = "${var.SSH_BASTION_PASSWORD}"
 
   # Optional networking setup for the Packer Builder VM
   virtual_network_name                = "${var.VIRTUAL_NETWORK_NAME}"
@@ -334,6 +344,7 @@ build {
       "MATLAB_SOURCE_LOCATION=${var.MATLAB_SOURCE_LOCATION}",
       "SPKG_SOURCE_LOCATION=${var.SPKG_SOURCE_LOCATION}",
       "AZURE_KEY_VAULT=${var.AZURE_KEY_VAULT}",
+      "MSA_URL=${local.effective_msa_url}",
       "MATLAB_PROXY_VERSION=${var.MATLAB_PROXY_VERSION}"
     ]
     scripts = "${local.build_scripts}"
@@ -344,7 +355,7 @@ build {
     ]
     scripts = ["build/Remove-TemporaryFiles.ps1"]
   }
-  
+
   provisioner "windows-restart" {
     restart_check_command = "powershell -command \"& {Write-Output 'restarted.'}\""
     restart_timeout       = "10m"

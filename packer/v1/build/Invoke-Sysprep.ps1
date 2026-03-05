@@ -72,6 +72,33 @@ function Invoke-Sysprep {
     }
 
     Write-Output 'Done with Invoke-Sysprep.'
+
+    Write-Output 'Wait for 5 mins to let sysprep complete...'
+    Start-Sleep -Seconds 300
+    Write-Output '5 mins wait is over.'
+    Write-Output 'Printing last 10 lines of sysprep log for verification...'
+    Get-FileContent -FilePath '%WINDIR%\System32\Sysprep\Panther\Setupact.log' -NLines 10
+}
+
+function Get-FileContent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $FilePath,
+
+        [Parameter(Mandatory = $false)]
+        [Int32] $NLines = 10
+    )
+
+    # Expand environment variables in the file path
+    $ExpandedPath = [Environment]::ExpandEnvironmentVariables($FilePath)
+    
+    # Check if the file exists before attempting to read it
+    if (Test-Path -Path $ExpandedPath) {
+        Get-Content -Path $ExpandedPath -Tail $NLines
+    }
+    else {
+        Write-Output "WARNING: File not found: $ExpandedPath"
+    }
 }
 
 

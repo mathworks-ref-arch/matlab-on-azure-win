@@ -2,7 +2,7 @@
 
 // Use this Packer configuration file to build an Azure VHD with MATLAB R2021a installed.
 // For more information on these variables, see /packer/v1/build-azure-matlab.pkr.hcl.
-RELEASE  = "R2021a"
+RELEASE = "R2021a"
 STARTUP_SCRIPTS = [
   "env.ps1",
   "10_Install-NiceDCV.ps1",

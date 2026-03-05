@@ -96,6 +96,16 @@ function Install-MATLABUsingMPM {
     Write-Output 'Done with Install-MATLABUsingMPM.'
 }
 
+function Install-MSA {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $MSAFileUrl
+    )
+
+    Invoke-WebRequest $MSAFileUrl -OutFile "C:\Windows\Temp\msa.ini"
+
+}
 
 function Initialize-MATLAB {
 
@@ -130,7 +140,7 @@ function Initialize-MATLAB {
     if (-not (Test-Path -Path "C:\ProgramData\MathWorks")){
         New-Item -ItemType "directory" -Path "C:\ProgramData\MathWorks"
     }
-    Copy-Item "C:\Windows\Temp\config\matlab\startup-accelerator\$Env:RELEASE\msa.ini" -Destination 'C:\ProgramData\MathWorks\msa.ini'
+    Copy-Item "C:\Windows\Temp\msa.ini" -Destination 'C:\ProgramData\MathWorks\msa.ini'
    
     Generate-ToolboxCache -Release $Release
 
@@ -220,10 +230,14 @@ function Install-MATLAB {
         [string] $Products,
 
         [Parameter(Mandatory = $false)]
-        [string] $SourceURL
+        [string] $SourceURL,
+
+        [Parameter(Mandatory = $false)]
+        [string] $MSAFileUrl
     )
 
     Install-MATLABUsingMPM -Release $Release -Products $Products -SourceURL $SourceURL
+    Install-MSA -MSAFileUrl $MSAFileUrl
     Initialize-MATLAB -Release $Release
     Add-DesktopShortcut -Release $Release
 }
@@ -231,7 +245,7 @@ function Install-MATLAB {
 
 try {
     $ErrorActionPreference = 'Stop' 
-    Install-MATLAB -Release "$Env:RELEASE" -Products $Env:PRODUCTS -SourceURL $Env:MATLAB_SOURCE_LOCATION
+    Install-MATLAB -Release "$Env:RELEASE" -Products $Env:PRODUCTS -SourceURL $Env:MATLAB_SOURCE_LOCATION -MSAFileUrl $Env:MSA_URL
 }
 catch {
     $ScriptPath = $MyInvocation.MyCommand.Path
