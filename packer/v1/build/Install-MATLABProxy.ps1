@@ -33,10 +33,10 @@ function Install-MATLABProxyPythonPackage {
     $InstallLocation = "$MATLAB_PROXY_FOLDER\python-package"
 
     if ($Version -eq "") {
-        & $Env:ProgramFiles\Python310\python.exe -m pip install matlab-proxy --target $InstallLocation 
+        & $Env:ProgramFiles\Python314\python.exe -m pip install matlab-proxy --target $InstallLocation 
     }
     else {
-        & $Env:ProgramFiles\Python310\python.exe -m pip install matlab-proxy==$Version --target $InstallLocation 
+        & $Env:ProgramFiles\Python314\python.exe -m pip install matlab-proxy==$Version --target $InstallLocation 
     }
 
     Write-Output 'Done with Install-MATLABProxyPythonPackage.'
