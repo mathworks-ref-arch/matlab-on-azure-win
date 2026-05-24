@@ -15,7 +15,7 @@
     https://github.com/mathworks/matlab-proxy
 
 .NOTES
-    Copyright 2024-2025 The MathWorks, Inc.
+    Copyright 2024-2026 The MathWorks, Inc.
     The function sets $ErrorActionPreference to 'Stop' to ensure that any errors encountered during the installation process will cause the script to stop and throw an error.
 #>
 
@@ -33,10 +33,10 @@ function Install-MATLABProxyPythonPackage {
     $InstallLocation = "$MATLAB_PROXY_FOLDER\python-package"
 
     if ($Version -eq "") {
-        & $Env:ProgramFiles\Python314\python.exe -m pip install matlab-proxy --target $InstallLocation 
+        & "$Env:PYTHON_INSTALL_PATH\python.exe" -m pip install matlab-proxy --target $InstallLocation
     }
     else {
-        & $Env:ProgramFiles\Python314\python.exe -m pip install matlab-proxy==$Version --target $InstallLocation 
+        & "$Env:PYTHON_INSTALL_PATH\python.exe" -m pip install matlab-proxy==$Version --target $InstallLocation 
     }
 
     Write-Output 'Done with Install-MATLABProxyPythonPackage.'

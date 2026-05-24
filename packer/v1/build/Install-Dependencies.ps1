@@ -12,7 +12,7 @@
     The URL for the Python installer.
 
 .NOTES
-    Copyright 2024-2025 The MathWorks, Inc.
+    Copyright 2024-2026 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 
@@ -65,7 +65,7 @@ function Install-Python {
     Invoke-WebRequest -Uri $PythonInstallerUrl -OutFile 'C:\Windows\Temp\python.exe'
 
     Write-Output 'Python Installer downloaded successfully. Installing ...'
-    Start-Process 'C:\Windows\Temp\python.exe' -Wait -ArgumentList '/quiet InstallAllUsers=1'
+    Start-Process 'C:\Windows\Temp\python.exe' -Wait -ArgumentList "/quiet InstallAllUsers=1 TargetDir=`"$Env:PYTHON_INSTALL_PATH`""
 
     Write-Output 'Done with Install-Python.'
 }

@@ -9,7 +9,7 @@
         Installs MATLAB using MATLAB Package Manager.
 
 .NOTES
-    Copyright 2020-2025 The MathWorks, Inc.
+    Copyright 2020-2026 The MathWorks, Inc.
     The $ErrorActionPreference variable is set to 'Stop' to ensure that any errors encountered during the function execution will cause the script to stop and throw an error.
 #>
 
@@ -193,7 +193,7 @@ function Generate-ToolboxCache {
     Write-Output 'Generate Toolbox cache xml if MATLAB version is greater than or equal to 2021b'
     # Toolbox cache generation is supported from R2021b onwards.
     if ($Release -ge 'R2021b') {
-        & 'C:\Program Files\Python314\python.exe' C:\Windows\Temp\config\matlab\generate_toolbox_cache.py "C:\Program Files\MATLAB\$Release" "C:\Program Files\MATLAB\$Release\toolbox\local"
+        & "$Env:PYTHON_INSTALL_PATH\python.exe" C:\Windows\Temp\config\matlab\generate_toolbox_cache.py "C:\Program Files\MATLAB\$Release" "C:\Program Files\MATLAB\$Release\toolbox\local"
     }
     else {
         Write-Host "Unable to generate Toolbox cache xml as version $Release is less than R2021b."

@@ -1,4 +1,4 @@
-# Copyright 2024-2025 The MathWorks, Inc.
+# Copyright 2024-2026 The MathWorks, Inc.
 
 // Use this Packer configuration file to build an Azure VHD with MATLAB R2021b installed.
 // For more information on these variables, see /packer/v1/build-azure-matlab.pkr.hcl.

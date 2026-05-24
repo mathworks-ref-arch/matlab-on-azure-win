@@ -1,4 +1,4 @@
-# Copyright 2025 The MathWorks, Inc.
+# Copyright 2025-2026 The MathWorks, Inc.
 
 // Use this Packer configuration file to build a managed image with MATLAB R2025a installed.
 // For more information on these variables, see /packer/v1/build-azure-matlab.pkr.hcl.

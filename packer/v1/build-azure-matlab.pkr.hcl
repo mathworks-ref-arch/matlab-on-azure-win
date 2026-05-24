@@ -115,6 +115,12 @@ variable "PYTHON_INSTALLER_URL" {
   description = "The URL to install python into the target machine image."
 }
 
+variable "PYTHON_INSTALL_PATH" {
+  type        = string
+  default     = "C:\\Program Files\\Python"
+  description = "The directory path where Python is installed on the target machine image."
+}
+
 variable "MATLAB_PROXY_VERSION" {
   type        = string
   default     = ""
@@ -341,6 +347,7 @@ build {
       "EDGE_INSTALLER_URL=${var.EDGE_INSTALLER_URL}",
       "NVIDIA_DRIVER_INSTALLER_URL=${var.NVIDIA_DRIVER_INSTALLER_URL}",
       "PYTHON_INSTALLER_URL=${var.PYTHON_INSTALLER_URL}",
+      "PYTHON_INSTALL_PATH=${var.PYTHON_INSTALL_PATH}",
       "MATLAB_SOURCE_LOCATION=${var.MATLAB_SOURCE_LOCATION}",
       "SPKG_SOURCE_LOCATION=${var.SPKG_SOURCE_LOCATION}",
       "AZURE_KEY_VAULT=${var.AZURE_KEY_VAULT}",

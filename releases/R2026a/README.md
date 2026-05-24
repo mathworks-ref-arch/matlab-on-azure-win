@@ -26,7 +26,7 @@ Click the **Deploy to Azure** button below to deploy the cloud resources on Azur
 | --- | --- |
 | Use this option to deploy the resources in a new virtual network<br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2026a%2Fazuredeploy-R2026a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> | Use this option to deploy the resources in an existing virtual network <br><br><a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmathworks-ref-arch%2Fmatlab-on-azure-win%2Fmaster%2Freleases%2FR2026a%2Fazuredeploy-existing-vnet-R2026a.json" target="_blank"><img src="https://aka.ms/deploytoazurebutton"/></a></br></br> |
 
-> VM Platform: Windows Server 2022 (R2026a and later), Windows Server 2022 (R2023a - R2025b), Windows Server 2019 (R2022b and earlier)
+> VM Platform: Windows Server 2022 (R2023a and later), Windows Server 2019 (R2022b and earlier)
 
 > MATLAB&reg; Release: R2026a
 
