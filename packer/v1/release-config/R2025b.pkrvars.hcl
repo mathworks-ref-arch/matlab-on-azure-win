@@ -37,3 +37,4 @@ EDGE_INSTALLER_URL          = "https://msedge.sf.dl.delivery.mp.microsoft.com/fi
 IMAGE_PUBLISHER             = "MicrosoftWindowsServer"
 IMAGE_OFFER                 = "WindowsServer"
 IMAGE_SKU                   = "2022-Datacenter"
+MATLAB_PROXY_VERSION        = "latest"

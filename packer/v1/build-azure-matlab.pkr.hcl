@@ -92,14 +92,10 @@ variable "DCV_INSTALLER_URL" {
   description = "The URL to install NICE DCV, a remote display protocol to use."
 }
 
-# To locate the URL, open a browser and go to the Microsoft webpage dedicated to downloading the Edge browser.
-# https://www.microsoft.com/en-us/edge/business/download?form=MA13FJ
-# Select the "Download for Windows 64-bit" option. As the file begins to download, access your
-# browser's "Full download history" (the name of this feature may vary across browsers, but we're using Chrome as an example).
-# Identify the file currently downloading, right-click on its link, and choose "Copy link address."
+# Microsoft stable-channel permalink for the Edge Enterprise MSI (redirects to the current version).
 variable "EDGE_INSTALLER_URL" {
   type        = string
-  default     = "https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/624ce5ea-33a7-47f1-af28-5c677f0c18bf/MicrosoftEdgeEnterpriseX64.msi"
+  default     = "https://go.microsoft.com/fwlink/?linkid=2093437"
   description = "The URL to install the Microsoft Edge Browser."
 }
 
@@ -123,8 +119,12 @@ variable "PYTHON_INSTALL_PATH" {
 
 variable "MATLAB_PROXY_VERSION" {
   type        = string
-  default     = ""
-  description = "The version of the matlab-proxy python package to install on the machine."
+  default     = "latest"
+  description = "Version of matlab-proxy to install. Use 'latest' to install the newest version available on PyPI, or pin to a specific version (e.g. '0.10.0')."
+  validation {
+    condition     = length(var.MATLAB_PROXY_VERSION) > 0
+    error_message = "MATLAB_PROXY_VERSION must not be empty. Use a version string or 'latest'."
+  }
 }
 
 variable "MSA_URL" {

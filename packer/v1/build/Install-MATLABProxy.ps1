@@ -32,11 +32,14 @@ function Install-MATLABProxyPythonPackage {
 
     $InstallLocation = "$MATLAB_PROXY_FOLDER\python-package"
 
-    if ($Version -eq "") {
+    # "latest" installs the newest release; any other value is treated as an exact
+    # version to pin. An empty value is not accepted, which keeps the behavior in
+    # line with the MATLAB_PROXY_VERSION Packer variable validation error message.
+    if ($Version -eq 'latest') {
         & "$Env:PYTHON_INSTALL_PATH\python.exe" -m pip install matlab-proxy --target $InstallLocation
     }
     else {
-        & "$Env:PYTHON_INSTALL_PATH\python.exe" -m pip install matlab-proxy==$Version --target $InstallLocation 
+        & "$Env:PYTHON_INSTALL_PATH\python.exe" -m pip install matlab-proxy==$Version --target $InstallLocation
     }
 
     Write-Output 'Done with Install-MATLABProxyPythonPackage.'
