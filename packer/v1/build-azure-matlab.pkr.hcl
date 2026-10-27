@@ -357,6 +357,9 @@ build {
     scripts = "${local.build_scripts}"
   }
   provisioner "powershell" {
+    scripts = ["build/Enable-CertPaddingCheck.ps1"]
+  }
+  provisioner "powershell" {
     environment_vars = [
       "RELEASE=${var.RELEASE}"
     ]

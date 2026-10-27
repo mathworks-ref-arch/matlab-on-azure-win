@@ -40,8 +40,23 @@ function Install-EdgeBrowser {
     (New-Object System.Net.WebClient).DownloadFile($EdgeInstallerUrl, $InstallerFile)
     
     Write-Output 'Installing Edge browser ...'
-    Start-Process msiexec.exe -Wait -ArgumentList '/i C:\Windows\Temp\MicrosoftEdgeEnterpriseX64.msi /quiet /norestart /l*v C:\ProgramData\InstallationLogs\edge_install_msi.log'
+    $Installer = Start-Process msiexec.exe -Wait -PassThru -ArgumentList '/i C:\Windows\Temp\MicrosoftEdgeEnterpriseX64.msi /quiet /norestart /l*v C:\ProgramData\InstallationLogs\edge_install_msi.log'
 
+    # Exit code 3010 means the install succeeded and needs a restart, which the build does later.
+    if ($Installer.ExitCode -ne 0 -and $Installer.ExitCode -ne 3010) {
+        throw "Edge installation failed with exit code $($Installer.ExitCode). See C:\ProgramData\InstallationLogs\edge_install_msi.log."
+    }
+
+    $EdgeExecutable = @(
+        "${Env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe",
+        "$Env:ProgramFiles\Microsoft\Edge\Application\msedge.exe"
+    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+    if (-not $EdgeExecutable) {
+        throw 'msedge.exe not found after installing Edge.'
+    }
+
+    Write-Output "Edge version in this image: $((Get-Item $EdgeExecutable).VersionInfo.ProductVersion)"
 
     Write-Output 'Done with Install-EdgeBrowser.'
 }
